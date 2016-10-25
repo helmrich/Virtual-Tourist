@@ -8,12 +8,21 @@
 
 import UIKit
 import MapKit
+import CoreData
 
 class TravelLocationsMapViewController: UIViewController {
 
     // MARK: - Properties
     
+    let coreDataStack: CoreDataStack?
     
+    // MARK: - Initializers
+    
+    required init?(coder aDecoder: NSCoder) {
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        coreDataStack = appDelegate.coreDataStack
+        super.init(coder: aDecoder)
+    }
     
     
     // MARK: - Outlets and Actions
@@ -34,6 +43,18 @@ class TravelLocationsMapViewController: UIViewController {
         
         setStartRegion()
         
+        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Pin")
+        do {
+            let pins = try coreDataStack?.persistingContext.fetch(fetchRequest) as! [Pin]
+            for pin in pins {
+                let annotation = MKPointAnnotation()
+                annotation.coordinate = CLLocationCoordinate2D(latitude: pin.latitude, longitude: pin.longitude)
+                travelLocationsMapView.addAnnotation(annotation)
+            }
+        } catch {
+            print("Error when fetching data from persisting context: \(error)")
+        }
+        
     }
     
     
@@ -43,11 +64,20 @@ class TravelLocationsMapViewController: UIViewController {
         // The annotation should be placed on the map only when the long press
         // gesture began, but not when the long press ends
         if sender.state == UIGestureRecognizerState.began {
+            // Get the point on the travelLocationsMapView that was tapped with a long press
             let touchPoint = sender.location(in: travelLocationsMapView)
-            print(touchPoint)
+            
+            // Convert the position of the long press to a coordinate on the travelLocationsMapView and
+            // create a point annotation with this coordinate
             let tappedCoordinate = travelLocationsMapView.convert(touchPoint, toCoordinateFrom: travelLocationsMapView)
             let annotation = MKPointAnnotation()
             annotation.coordinate = tappedCoordinate
+            
+            if let coreDataStack = coreDataStack {
+                let pin = Pin(withLatitude: annotation.coordinate.latitude, andLongitude: annotation.coordinate.longitude, intoContext: coreDataStack.context)
+                coreDataStack.save()
+            }
+            
             travelLocationsMapView.addAnnotation(annotation)
         }
     }
