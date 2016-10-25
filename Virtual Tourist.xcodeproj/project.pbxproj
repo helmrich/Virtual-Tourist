@@ -15,6 +15,13 @@
 		D287AF121DBD36DD003D8914 /* PhotoAlbumViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D287AF111DBD36DD003D8914 /* PhotoAlbumViewController.swift */; };
 		D287AF161DBD53A6003D8914 /* UserDefaultKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = D287AF151DBD53A6003D8914 /* UserDefaultKey.swift */; };
 		D287AF191DBD70F9003D8914 /* Model.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = D287AF171DBD70F9003D8914 /* Model.xcdatamodeld */; };
+		D29629D51DBECD3100DD4991 /* Pin+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = D29629D11DBECD3100DD4991 /* Pin+CoreDataClass.swift */; };
+		D29629D61DBECD3100DD4991 /* Pin+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = D29629D21DBECD3100DD4991 /* Pin+CoreDataProperties.swift */; };
+		D29629D71DBECD3100DD4991 /* Photo+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = D29629D31DBECD3100DD4991 /* Photo+CoreDataClass.swift */; };
+		D29629D81DBECD3100DD4991 /* Photo+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = D29629D41DBECD3100DD4991 /* Photo+CoreDataProperties.swift */; };
+		D2AF7A001DBFED060021EAA3 /* FlickrClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2AF79FF1DBFED060021EAA3 /* FlickrClient.swift */; };
+		D2AF7A061DC018ED0021EAA3 /* FlickrConstant.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2AF7A051DC018ED0021EAA3 /* FlickrConstant.swift */; };
+		D2CA2C451DBEA727001AE4ED /* CoreDataStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2CA2C441DBEA727001AE4ED /* CoreDataStack.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +35,13 @@
 		D287AF111DBD36DD003D8914 /* PhotoAlbumViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PhotoAlbumViewController.swift; sourceTree = "<group>"; };
 		D287AF151DBD53A6003D8914 /* UserDefaultKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserDefaultKey.swift; sourceTree = "<group>"; };
 		D287AF181DBD70F9003D8914 /* Model.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Model.xcdatamodel; sourceTree = "<group>"; };
+		D29629D11DBECD3100DD4991 /* Pin+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Pin+CoreDataClass.swift"; sourceTree = "<group>"; };
+		D29629D21DBECD3100DD4991 /* Pin+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Pin+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		D29629D31DBECD3100DD4991 /* Photo+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Photo+CoreDataClass.swift"; sourceTree = "<group>"; };
+		D29629D41DBECD3100DD4991 /* Photo+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Photo+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		D2AF79FF1DBFED060021EAA3 /* FlickrClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FlickrClient.swift; sourceTree = "<group>"; };
+		D2AF7A051DC018ED0021EAA3 /* FlickrConstant.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FlickrConstant.swift; sourceTree = "<group>"; };
+		D2CA2C441DBEA727001AE4ED /* CoreDataStack.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreDataStack.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -74,7 +88,13 @@
 		D287AF0C1DBD3643003D8914 /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				D2AF79FD1DBFECEE0021EAA3 /* Client */,
 				D287AF171DBD70F9003D8914 /* Model.xcdatamodeld */,
+				D29629D11DBECD3100DD4991 /* Pin+CoreDataClass.swift */,
+				D29629D21DBECD3100DD4991 /* Pin+CoreDataProperties.swift */,
+				D29629D31DBECD3100DD4991 /* Photo+CoreDataClass.swift */,
+				D29629D41DBECD3100DD4991 /* Photo+CoreDataProperties.swift */,
+				D2CA2C441DBEA727001AE4ED /* CoreDataStack.swift */,
 			);
 			name = Model;
 			sourceTree = "<group>";
@@ -111,6 +131,23 @@
 				D287AF031DBD3390003D8914 /* LaunchScreen.storyboard */,
 			);
 			name = Assets;
+			sourceTree = "<group>";
+		};
+		D2AF79FD1DBFECEE0021EAA3 /* Client */ = {
+			isa = PBXGroup;
+			children = (
+				D2AF79FE1DBFECF30021EAA3 /* Flickr */,
+			);
+			name = Client;
+			sourceTree = "<group>";
+		};
+		D2AF79FE1DBFECF30021EAA3 /* Flickr */ = {
+			isa = PBXGroup;
+			children = (
+				D2AF79FF1DBFED060021EAA3 /* FlickrClient.swift */,
+				D2AF7A051DC018ED0021EAA3 /* FlickrConstant.swift */,
+			);
+			name = Flickr;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -187,9 +224,16 @@
 			buildActionMask = 2147483647;
 			files = (
 				D287AF161DBD53A6003D8914 /* UserDefaultKey.swift in Sources */,
+				D29629D61DBECD3100DD4991 /* Pin+CoreDataProperties.swift in Sources */,
 				D287AEFB1DBD3390003D8914 /* AppDelegate.swift in Sources */,
+				D29629D51DBECD3100DD4991 /* Pin+CoreDataClass.swift in Sources */,
 				D287AF191DBD70F9003D8914 /* Model.xcdatamodeld in Sources */,
+				D2CA2C451DBEA727001AE4ED /* CoreDataStack.swift in Sources */,
+				D29629D71DBECD3100DD4991 /* Photo+CoreDataClass.swift in Sources */,
 				D287AF101DBD367F003D8914 /* TravelLocationsMapViewController.swift in Sources */,
+				D2AF7A061DC018ED0021EAA3 /* FlickrConstant.swift in Sources */,
+				D2AF7A001DBFED060021EAA3 /* FlickrClient.swift in Sources */,
+				D29629D81DBECD3100DD4991 /* Photo+CoreDataProperties.swift in Sources */,
 				D287AF121DBD36DD003D8914 /* PhotoAlbumViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -354,6 +398,7 @@
 				D287AF0B1DBD3390003D8914 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 
