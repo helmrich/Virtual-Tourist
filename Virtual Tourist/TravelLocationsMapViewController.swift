@@ -45,7 +45,7 @@ class TravelLocationsMapViewController: UIViewController {
         
         let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Pin")
         do {
-            let pins = try coreDataStack?.persistingContext.fetch(fetchRequest) as! [Pin]
+            let pins = try coreDataStack?.context.fetch(fetchRequest) as! [Pin]
             for pin in pins {
                 let annotation = MKPointAnnotation()
                 annotation.coordinate = CLLocationCoordinate2D(latitude: pin.latitude, longitude: pin.longitude)
@@ -55,6 +55,12 @@ class TravelLocationsMapViewController: UIViewController {
             print("Error when fetching data from persisting context: \(error)")
         }
         
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        navigationController?.setNavigationBarHidden(true, animated: false)
     }
     
     
@@ -106,11 +112,49 @@ class TravelLocationsMapViewController: UIViewController {
 
 extension TravelLocationsMapViewController: MKMapViewDelegate {
     func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
+        // Every time the region changes (when the user scrolls or zooms for example) the values needed to set a region
+        // (center, span) should be set in the user defaults so that the region is the same when the app is started again
         let currentRegion = mapView.region
-        print(currentRegion)
         UserDefaults.standard.set(currentRegion.center.latitude, forKey: UserDefaultKey.currentCenterLatitude.rawValue)
         UserDefaults.standard.set(currentRegion.center.longitude, forKey: UserDefaultKey.currentCenterLongitude.rawValue)
         UserDefaults.standard.set(currentRegion.span.latitudeDelta, forKey: UserDefaultKey.currentSpanLatitudeDelta.rawValue)
         UserDefaults.standard.set(currentRegion.span.longitudeDelta, forKey: UserDefaultKey.currentSpanLongitudeDelta.rawValue)
     }
+    
+    func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
+        
+        // Get the tapped annotation view's annotation
+        guard let annotation = view.annotation else {
+            print("Tapped annotation view doesn't have an annotation")
+            return
+        }
+        
+        let photoAlbumViewController = storyboard?.instantiateViewController(withIdentifier: "photoAlbumViewController") as! PhotoAlbumViewController
+        photoAlbumViewController.annotation = annotation
+        
+        // Deselect the selected annotation before the photo album view controller gets pushed on the navigation controller's stack
+        // so that the same annotation can be selected again after the user goes back to the TravelLocationsMapViewController
+        travelLocationsMapView.deselectAnnotation(annotation, animated: true)
+        
+        navigationController?.pushViewController(photoAlbumViewController, animated: true)
+    }
+    
+    func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+        guard let annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: "pin") else {
+            let annotationView = MKAnnotationView(annotation: annotation, reuseIdentifier: "pin")
+            let pinImage = UIImage(named: "VTPin")
+            let pinImageSize = CGSize(width: 30, height: 40)
+            UIGraphicsBeginImageContext(pinImageSize)
+            pinImage!.draw(in: CGRect(x: 0, y: 0, width: pinImageSize.width, height: pinImageSize.height))
+            let resizedImage = UIGraphicsGetImageFromCurrentImageContext()
+            UIGraphicsEndImageContext()
+            annotationView.image = resizedImage
+            annotationView.centerOffset = CGPoint(x: 0, y: -(pinImageSize.height / 2))
+            return annotationView
+        }
+        
+        return annotationView
+        
+    }
+    
 }
