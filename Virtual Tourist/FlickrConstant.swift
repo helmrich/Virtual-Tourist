@@ -36,11 +36,14 @@ struct FlickrConstant {
         static let apiKey = "b845f56811c9165e8ecbf44032a85a04"
         static let jsonFormat = "json"
         static let imageMediumUrl = "url_m"
+        static let photosPerPage = 21
     }
     
     struct JSONResponseKey {
         static let photos = "photos"
         static let photoArray = "photo"
+        static let pages = "pages"
         static let imageMediumUrl = "url_m"
+        static let id = "id"
     }
 }
