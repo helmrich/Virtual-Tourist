@@ -14,22 +14,18 @@ class TravelLocationsMapViewController: UIViewController {
 
     // MARK: - Properties
     
-    let coreDataStack: CoreDataStack?
-    
-    // MARK: - Initializers
-    
-    required init?(coder aDecoder: NSCoder) {
-        let appDelegate = UIApplication.shared.delegate as! AppDelegate
-        coreDataStack = appDelegate.coreDataStack
-        super.init(coder: aDecoder)
-    }
+    var isInDeleteMode = false
     
     
     // MARK: - Outlets and Actions
     
     @IBOutlet weak var travelLocationsMapView: MKMapView!
+    @IBOutlet weak var deleteInformationLabel: UILabel!
     
-    
+    @IBAction func toggleDeleteMode() {
+        isInDeleteMode = !isInDeleteMode
+        deleteInformationLabel.isHidden = !isInDeleteMode
+    }
     
     // MARK: - Lifecycle Methods
     
@@ -43,16 +39,17 @@ class TravelLocationsMapViewController: UIViewController {
         
         setStartRegion()
         
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Pin")
+        // Get all pins from the view context and place them on the travel locations map view
+        let fetchRequest = NSFetchRequest<Pin>(entityName: "Pin")
         do {
-            let pins = try coreDataStack?.context.fetch(fetchRequest) as! [Pin]
+            let pins = try CoreDataStack.stack.persistentContainer.viewContext.fetch(fetchRequest)
             for pin in pins {
                 let annotation = MKPointAnnotation()
                 annotation.coordinate = CLLocationCoordinate2D(latitude: pin.latitude, longitude: pin.longitude)
                 travelLocationsMapView.addAnnotation(annotation)
             }
         } catch {
-            print("Error when fetching data from persisting context: \(error)")
+            print("Error when fetching pins from persisting context: \(error)")
         }
         
     }
@@ -60,7 +57,6 @@ class TravelLocationsMapViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        navigationController?.setNavigationBarHidden(true, animated: false)
     }
     
     
@@ -73,18 +69,18 @@ class TravelLocationsMapViewController: UIViewController {
             // Get the point on the travelLocationsMapView that was tapped with a long press
             let touchPoint = sender.location(in: travelLocationsMapView)
             
-            // Convert the position of the long press to a coordinate on the travelLocationsMapView and
-            // create a point annotation with this coordinate
+            // Convert the position of the long press to a coordinate on the travelLocationsMapView,
+            // create a point annotation with this coordinate,
             let tappedCoordinate = travelLocationsMapView.convert(touchPoint, toCoordinateFrom: travelLocationsMapView)
             let annotation = MKPointAnnotation()
             annotation.coordinate = tappedCoordinate
             
-            if let coreDataStack = coreDataStack {
-                let pin = Pin(withLatitude: annotation.coordinate.latitude, andLongitude: annotation.coordinate.longitude, intoContext: coreDataStack.context)
-                coreDataStack.save()
-            }
-            
+            // add the annotation to the map view,
             travelLocationsMapView.addAnnotation(annotation)
+            
+            // create a Pin object with the annotation's coordinate and save the context
+            let pin = Pin(withLatitude: annotation.coordinate.latitude, andLongitude: annotation.coordinate.longitude, intoContext: CoreDataStack.stack.persistentContainer.viewContext)
+            CoreDataStack.stack.save()
         }
     }
     
@@ -129,6 +125,13 @@ extension TravelLocationsMapViewController: MKMapViewDelegate {
             return
         }
         
+        guard !isInDeleteMode else {
+            mapView.removeAnnotation(annotation)
+            CoreDataStack.stack.deletePin(forLatitude: annotation.coordinate.latitude, andLongitude: annotation.coordinate.longitude)
+            return
+        }
+        
+        // Instantiate a photo album view controller from the storyboard and pass it the selected annotation view's annotation
         let photoAlbumViewController = storyboard?.instantiateViewController(withIdentifier: "photoAlbumViewController") as! PhotoAlbumViewController
         photoAlbumViewController.annotation = annotation
         
@@ -140,14 +143,23 @@ extension TravelLocationsMapViewController: MKMapViewDelegate {
     }
     
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+        // Check if a reusable annotation view with the "pin" identifier can be dequeued from the map view
         guard let annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: "pin") else {
+            // If not, create an annotation view with the "pin" reuse identifier,
             let annotationView = MKAnnotationView(annotation: annotation, reuseIdentifier: "pin")
+            
+            // Get the custom pin image
             let pinImage = UIImage(named: "VTPin")
-            let pinImageSize = CGSize(width: 30, height: 40)
+            
+            // Resize the image
+            let pinImageSize = CGSize(width: 30, height: 42)
             UIGraphicsBeginImageContext(pinImageSize)
             pinImage!.draw(in: CGRect(x: 0, y: 0, width: pinImageSize.width, height: pinImageSize.height))
             let resizedImage = UIGraphicsGetImageFromCurrentImageContext()
             UIGraphicsEndImageContext()
+            
+            // Set the annotation view's image property to the custom image and set a center offset with a y-value
+            // of negative the half of the pin image's height so that the bottom of the image points to the annotation view's coordinate
             annotationView.image = resizedImage
             annotationView.centerOffset = CGPoint(x: 0, y: -(pinImageSize.height / 2))
             return annotationView
