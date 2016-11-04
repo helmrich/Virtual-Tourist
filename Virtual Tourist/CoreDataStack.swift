@@ -9,8 +9,20 @@
 import UIKit
 import CoreData
 class CoreDataStack: NSObject {
+    
+    // MARK: - Properties
+    
+    // Singleton, overwrite the init with fileprivate access control to make sure it can only be
+    // instantiated in this file
+    static let stack = CoreDataStack()
+    fileprivate override init() {}
+    
+    // Create a persistent container that contains the Core Data stack
     lazy var persistentContainer: NSPersistentContainer = {
         let container = NSPersistentContainer(name: "Model")
+        
+        container.viewContext.automaticallyMergesChangesFromParent = true
+        
         container.loadPersistentStores(completionHandler: { (storeDescription, error) in
             guard error == nil else {
                 fatalError("Error when trying to load persistent store: \(error!.localizedDescription)")
@@ -28,13 +40,73 @@ class CoreDataStack: NSObject {
 
 extension CoreDataStack {
     func save() {
-        let context = persistentContainer.viewContext
-        if context.hasChanges {
+        // Check if the context has any changes and try to save it if it has
+        if persistentContainer.viewContext.hasChanges {
             do {
-                try context.save()
+                try persistentContainer.viewContext.save()
             } catch {
                 fatalError("Error when trying to save context: \(error.localizedDescription)")
             }
         }
     }
+    
+    // Should only be used in development. This function destroys a persistent store and adds a persistent store of same type at the same URL
+    // in order to have an empty persistent store
+    func deleteAllData() {
+        if let persistentStoreUrl = persistentContainer.persistentStoreCoordinator.persistentStores.first?.url {
+            do {
+                try persistentContainer.persistentStoreCoordinator.destroyPersistentStore(at: persistentStoreUrl, ofType: NSSQLiteStoreType, options: nil)
+                try persistentContainer.persistentStoreCoordinator.addPersistentStore(ofType: NSSQLiteStoreType, configurationName: nil, at: persistentStoreUrl, options: nil)
+            } catch {
+                fatalError("Failed when trying to delete data from persistent store: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    func getPin(forLatitude latitude: Double, andLongitude longitude: Double) -> Pin? {
+        // Set the predicates for latitude and longitude
+        let predicates = [
+            NSPredicate(format: "latitude == %@", argumentArray: [latitude]),
+            NSPredicate(format: "longitude == %@", argumentArray: [longitude])
+        ]
+        
+        // Create a compound predicate from the latitude and longitude predicates connected with "AND"
+        let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
+        
+        // Create a fetch request for the Pin entity and assign the predicate to its predicate property
+        let fetchRequest = NSFetchRequest<Pin>(entityName: "Pin")
+        fetchRequest.predicate = compoundPredicate
+        
+        let pin: Pin?
+        do {
+            // Make a fetch request and get the pin at index 0 if there is at least one pin at the specified coordinate
+            let pins = try CoreDataStack.stack.persistentContainer.viewContext.fetch(fetchRequest)
+            if pins.count > 0 {
+                pin = pins[0]
+            } else {
+                pin = nil
+            }
+        } catch {
+            print("Error when trying to fetch pin: \(error.localizedDescription)")
+            pin = nil
+        }
+        
+        return pin
+        
+    }
+    
+    func deletePin(forLatitude latitude: Double, andLongitude longitude: Double) {
+        let predicate = NSPredicate(format: "latitude == %@ AND longitude == %@", argumentArray: [latitude, longitude])
+        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Pin")
+        fetchRequest.predicate = predicate
+        let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+        do {
+            try CoreDataStack.stack.persistentContainer.viewContext.execute(batchDeleteRequest)
+            print("Successfully deleted pin")
+        } catch {
+            print("Error when trying to delete pin: \(error.localizedDescription)")
+        }
+    }
+    
+    
 }
