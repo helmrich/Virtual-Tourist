@@ -20,7 +20,9 @@ class FlickrClient {
     
     // MARK: - Methods
     
-    func getImageUrls(forLatitude latitude: Double, andLongitude longitude: Double, withRadius radius: Double, completionHandlerForImageUrls: @escaping (_ imageUrls: [URL]?, _ errorMessage: String?) -> Void) {
+    func getImageInformations(forLatitude latitude: Double, andLongitude longitude: Double, withRadius radius: Double = 1, fromPage pageNumber: Int = 1, completionHandlerForImageInformations: @escaping (_ imageInformations: [String:URL]?, _ numberOfPages: Int?, _ errorMessage: String?) -> Void) {
+        
+        print("Getting image informations from page \(pageNumber)")
         
         // Set the parameters
         let parameters: [String:Any] = [
@@ -29,7 +31,8 @@ class FlickrClient {
             FlickrConstant.ParameterKey.noJSONCallback: 1,
             FlickrConstant.ParameterKey.method: FlickrConstant.Method.photosSearch,
             FlickrConstant.ParameterKey.extras: FlickrConstant.ParameterValue.imageMediumUrl,
-            FlickrConstant.ParameterKey.photosPerPage: 21,
+            FlickrConstant.ParameterKey.photosPerPage: FlickrConstant.ParameterValue.photosPerPage,
+            FlickrConstant.ParameterKey.page: pageNumber,
             FlickrConstant.ParameterKey.lat: latitude,
             FlickrConstant.ParameterKey.lon: longitude,
             FlickrConstant.ParameterKey.radius: radius
@@ -37,9 +40,11 @@ class FlickrClient {
         
         // Get the Flickr URL
         guard let url = createFlickrUrl(fromParameters: parameters) else {
-            completionHandlerForImageUrls(nil, "Couldn't create Flickr URL")
+            completionHandlerForImageInformations(nil, nil, "Couldn't create Flickr URL")
             return
         }
+        
+        print(url)
         
         // Create the request
         let request = URLRequest(url: url)
@@ -48,20 +53,20 @@ class FlickrClient {
             
             // Check if there was an error
             guard error == nil else {
-                completionHandlerForImageUrls(nil, "Error: \(error!.localizedDescription)")
+                completionHandlerForImageInformations(nil, nil, "Error: \(error!.localizedDescription)")
                 return
             }
             
             // Check if the status code implies a successful response
             guard let statusCode = (response as? HTTPURLResponse)?.statusCode,
                 statusCode >= 200 && statusCode <= 299 else {
-                    completionHandlerForImageUrls(nil, "Received unsuccessful status code")
+                    completionHandlerForImageInformations(nil, nil, "Received unsuccessful status code")
                     return
             }
             
             // Check if data was received
             guard let data = data else {
-                completionHandlerForImageUrls(nil, "No data received")
+                completionHandlerForImageInformations(nil, nil, "No data received")
                 return
             }
             
@@ -70,38 +75,65 @@ class FlickrClient {
             do {
                 jsonData = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as! [String:Any]
             } catch {
-                completionHandlerForImageUrls(nil, "JSON deserialization error: \(error.localizedDescription)")
+                completionHandlerForImageInformations(nil, nil, "JSON deserialization error: \(error.localizedDescription)")
                 return
             }
             
             // Get the array of photo dictionaries by extracting them from the JSON object
             guard let photos = jsonData[FlickrConstant.JSONResponseKey.photos] as? [String:Any],
+                let numberOfPages = photos[FlickrConstant.JSONResponseKey.pages] as? Int,
                 let photoArray = photos[FlickrConstant.JSONResponseKey.photoArray] as? [[String:Any]] else {
-                    completionHandlerForImageUrls(nil, "Error when parsing JSON")
+                    completionHandlerForImageInformations(nil, nil, "Error when parsing JSON")
                     return
             }
             
+            
             // Create an empty array of NSData objects and fill it by iterating over all the received image dictionaries
             // and using the images' URL string to create NSData objects from URLs
-            var imageUrls = [URL]()
+            var imageInformations = [String:URL]()
             for photo in photoArray {
                 guard let currentImageUrlString = photo[FlickrConstant.JSONResponseKey.imageMediumUrl] as? String,
-                    let currentImageUrl = URL(string: currentImageUrlString) else {
-                        completionHandlerForImageUrls(nil, "Couldn't create URLs")
+                    let currentImageUrl = URL(string: currentImageUrlString),
+                    let currentImageId = photo[FlickrConstant.JSONResponseKey.id] as? String else {
+                        completionHandlerForImageInformations(nil, nil, "Couldn't create image information")
                         return
                 }
                 
-                imageUrls.append(currentImageUrl)
+                imageInformations[currentImageId] = currentImageUrl
                 
             }
             
             // Call the completion handler and pass it the image data
-            completionHandlerForImageUrls(imageUrls, nil)
+            completionHandlerForImageInformations(imageInformations, numberOfPages, nil)
             
         }
         
         task.resume()
         
+    }
+    
+    func getImageInformationsForRandomPage(forLatitude latitude: Double, andLongitude longitude: Double, withNumberOfPages numberOfPages: Int, completionHandlerForImageInformations: @escaping (_ imageInformations: [String:URL]?, _ errorMessage: String?) -> Void) {
+        // Create a random number between 1 and the number of available pages with images
+        // and try to get new images from a random page. Note: The maximum number of distinct
+        // images is 4000 due to Flickr's limitations which means that the last page with distinct images
+        // is 4000 / numberOfPhotosPerPage
+        let maxNumberOfPages = Int(4000 / FlickrConstant.ParameterValue.photosPerPage)
+        let maxNumber = numberOfPages > maxNumberOfPages ? maxNumberOfPages : numberOfPages
+        let randomPageNumber = Int(1 + arc4random_uniform(UInt32(maxNumber + 1)))
+        FlickrClient.shared.getImageInformations(forLatitude: latitude, andLongitude: longitude, fromPage: randomPageNumber) { (imageInformations, _, errorMessage) in
+            guard errorMessage == nil else {
+                completionHandlerForImageInformations(nil, errorMessage!)
+                return
+            }
+            
+            guard let imageInformations = imageInformations else {
+                completionHandlerForImageInformations(nil, "Couldn't get image informations")
+                return
+            }
+            
+            completionHandlerForImageInformations(imageInformations, nil)
+            
+        }
     }
     
     func downloadImageData(fromUrl url: URL, completionHandlerForImageData: @escaping (_ data: NSData?, _ errorMessage: String?) -> Void) {
