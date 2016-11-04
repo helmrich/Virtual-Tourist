@@ -25,7 +25,7 @@
             </objects>
             <point key="canvasLocation" x="-158" y="147"/>
         </scene>
-        <!--Travel Locations Map View Controller-->
+        <!--Virtual Tourist-->
         <scene sceneID="tru-jD-seo">
             <objects>
                 <viewController id="56C-N7-4Ak" customClass="TravelLocationsMapViewController" customModule="Virtual_Tourist" customModuleProvider="target" sceneMemberID="viewController">
@@ -38,22 +38,42 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="CTe-om-6Sb">
-                                <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                                <rect key="frame" x="0.0" y="64" width="375" height="603"/>
                                 <connections>
                                     <outlet property="delegate" destination="56C-N7-4Ak" id="qGp-J7-43w"/>
                                 </connections>
                             </mapView>
+                            <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Tap Pins to Delete" textAlignment="center" lineBreakMode="wordWrap" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" preferredMaxLayoutWidth="375" translatesAutoresizingMaskIntoConstraints="NO" id="ic3-G5-eOK">
+                                <rect key="frame" x="0.0" y="602" width="375" height="65"/>
+                                <color key="backgroundColor" red="0.93725490570068359" green="0.32549020648002625" blue="0.31372550129890442" alpha="1" colorSpace="calibratedRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="65" id="3UW-xN-Vzq"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" weight="light" pointSize="24"/>
+                                <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstItem="CTe-om-6Sb" firstAttribute="leading" secondItem="t4B-P9-P2x" secondAttribute="leading" id="EMS-R4-hPJ"/>
                             <constraint firstItem="tZ7-xW-lMd" firstAttribute="top" secondItem="CTe-om-6Sb" secondAttribute="bottom" id="HWK-TE-nAH"/>
+                            <constraint firstItem="tZ7-xW-lMd" firstAttribute="top" secondItem="ic3-G5-eOK" secondAttribute="bottom" id="RdM-Im-26X"/>
                             <constraint firstAttribute="trailing" secondItem="CTe-om-6Sb" secondAttribute="trailing" id="gsb-wl-dVT"/>
-                            <constraint firstItem="CTe-om-6Sb" firstAttribute="top" secondItem="ga0-Mr-nDR" secondAttribute="bottom" constant="-64" id="jab-te-7Tu"/>
+                            <constraint firstAttribute="trailing" secondItem="ic3-G5-eOK" secondAttribute="trailing" id="i1d-zF-hPE"/>
+                            <constraint firstItem="CTe-om-6Sb" firstAttribute="top" secondItem="ga0-Mr-nDR" secondAttribute="bottom" id="jab-te-7Tu"/>
+                            <constraint firstItem="ic3-G5-eOK" firstAttribute="leading" secondItem="t4B-P9-P2x" secondAttribute="leading" id="rTn-MV-Rnq"/>
                         </constraints>
                     </view>
-                    <navigationItem key="navigationItem" id="92o-sF-GED"/>
+                    <navigationItem key="navigationItem" title="Virtual Tourist" id="92o-sF-GED">
+                        <barButtonItem key="rightBarButtonItem" title="Item" systemItem="edit" id="6kV-cO-NYK">
+                            <connections>
+                                <action selector="toggleDeleteMode" destination="56C-N7-4Ak" id="tBF-aH-P8D"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
                     <connections>
+                        <outlet property="deleteInformationLabel" destination="ic3-G5-eOK" id="bob-gW-PY8"/>
                         <outlet property="travelLocationsMapView" destination="CTe-om-6Sb" id="6ku-jU-Qkt"/>
                     </connections>
                 </viewController>
@@ -78,12 +98,19 @@
                                 <constraints>
                                     <constraint firstAttribute="height" constant="150" id="6Bw-p2-WTn"/>
                                 </constraints>
+                                <connections>
+                                    <outlet property="delegate" destination="hsk-Bu-se2" id="myh-rG-COU"/>
+                                </connections>
                             </mapView>
                             <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="h7m-1B-FtZ">
                                 <rect key="frame" x="0.0" y="623" width="375" height="44"/>
                                 <items>
                                     <barButtonItem style="plain" systemItem="flexibleSpace" id="ZTc-1A-40p"/>
-                                    <barButtonItem title="Load New Album" style="plain" id="WRD-ND-zXu"/>
+                                    <barButtonItem title="Load New Album" style="plain" id="WRD-ND-zXu">
+                                        <connections>
+                                            <action selector="changePhotoAlbum" destination="hsk-Bu-se2" id="A5k-Ga-lQb"/>
+                                        </connections>
+                                    </barButtonItem>
                                     <barButtonItem style="plain" systemItem="flexibleSpace" id="zHh-9U-PA3"/>
                                 </items>
                             </toolbar>
@@ -137,18 +164,23 @@
                                         </connections>
                                     </collectionView>
                                     <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="No Images Found" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="iMp-bh-awA">
-                                        <rect key="frame" x="88" y="196.5" width="198.5" height="31.5"/>
+                                        <rect key="frame" x="88" y="211.5" width="199" height="32"/>
                                         <fontDescription key="fontDescription" type="system" weight="light" pointSize="26"/>
                                         <nil key="textColor"/>
                                         <nil key="highlightedColor"/>
                                     </label>
+                                    <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="kAD-b5-AMU">
+                                        <rect key="frame" x="178" y="217" width="20" height="20"/>
+                                    </activityIndicatorView>
                                 </subviews>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <constraints>
                                     <constraint firstItem="3a3-ah-Idv" firstAttribute="top" secondItem="bnN-A1-hLc" secondAttribute="top" id="9l4-ei-arW"/>
                                     <constraint firstAttribute="bottom" secondItem="3a3-ah-Idv" secondAttribute="bottom" id="H0F-d0-hda"/>
                                     <constraint firstItem="iMp-bh-awA" firstAttribute="centerX" secondItem="bnN-A1-hLc" secondAttribute="centerX" id="K5w-iU-Btt"/>
-                                    <constraint firstItem="iMp-bh-awA" firstAttribute="centerY" secondItem="bnN-A1-hLc" secondAttribute="centerY" constant="-15.25" id="LnM-Sc-xbd"/>
+                                    <constraint firstItem="iMp-bh-awA" firstAttribute="centerY" secondItem="bnN-A1-hLc" secondAttribute="centerY" id="LnM-Sc-xbd"/>
+                                    <constraint firstItem="kAD-b5-AMU" firstAttribute="centerX" secondItem="bnN-A1-hLc" secondAttribute="centerX" id="Twf-cj-Pi9"/>
+                                    <constraint firstItem="kAD-b5-AMU" firstAttribute="centerY" secondItem="bnN-A1-hLc" secondAttribute="centerY" id="ZNI-jq-jO0"/>
                                     <constraint firstItem="3a3-ah-Idv" firstAttribute="leading" secondItem="bnN-A1-hLc" secondAttribute="leading" id="ouw-a0-cbN"/>
                                     <constraint firstAttribute="trailing" secondItem="3a3-ah-Idv" secondAttribute="trailing" id="tbO-Mm-e2A"/>
                                 </constraints>
@@ -172,6 +204,7 @@
                         <outlet property="flowLayout" destination="I8D-oB-xRq" id="w7b-fu-gym"/>
                         <outlet property="imageCollectionView" destination="3a3-ah-Idv" id="l3l-5x-o6x"/>
                         <outlet property="loadNewAlbumButton" destination="WRD-ND-zXu" id="rog-kZ-rH3"/>
+                        <outlet property="loadingCollectionViewActivityIndicatorView" destination="kAD-b5-AMU" id="XgN-l4-glo"/>
                         <outlet property="mapView" destination="x6H-c1-8Mk" id="bam-GZ-GP6"/>
                         <outlet property="noImagesFoundLabel" destination="iMp-bh-awA" id="VdU-QZ-tMV"/>
                     </connections>
