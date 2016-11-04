@@ -14,7 +14,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     // MARK: - Properties
     
     var window: UIWindow?
-    let coreDataStack = CoreDataStack()
 
     
     // MARK: - Functions
@@ -41,15 +40,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
-        coreDataStack.save()
+        CoreDataStack.stack.save()
     }
 
     func applicationDidEnterBackground(_ application: UIApplication) {
-        coreDataStack.save()
+        CoreDataStack.stack.save()
     }
 
     func applicationWillTerminate(_ application: UIApplication) {
-        coreDataStack.save()
+        CoreDataStack.stack.save()
     }
 
 
