@@ -9,6 +9,14 @@
 import UIKit
 
 class ImageCollectionViewCell: UICollectionViewCell {
+    
+    // MARK: - Properties
+    
+    var imageId: String? = nil
+    
+    
+    // MARK: - Outlets
+    
     @IBOutlet weak var imageView: UIImageView!
     @IBOutlet weak var activityIndicatorView: UIActivityIndicatorView!
 }
