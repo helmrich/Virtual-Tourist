@@ -23,7 +23,17 @@ public class Pin: NSManagedObject {
     }
     
     func removePhotos() {
-        self.photos = nil
+        let predicate = NSPredicate(format: "pin == %@", argumentArray: [self])
+        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Photo")
+        fetchRequest.predicate = predicate
+        let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+        do {
+            try CoreDataStack.stack.persistentContainer.viewContext.execute(batchDeleteRequest)
+            CoreDataStack.stack.save()
+            print("Deleted photos from pin...")
+        } catch {
+            fatalError("Error when trying to delete pin's photos: \(error.localizedDescription)")
+        }
     }
     
     func removePhotos(withIds ids: [String]) {
