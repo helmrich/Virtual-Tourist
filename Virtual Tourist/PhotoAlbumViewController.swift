@@ -98,6 +98,7 @@ class PhotoAlbumViewController: UIViewController {
             
             // Remove the photos from the Pin managed object
             pin.removePhotos(withIds: selectedImageIds)
+            CoreDataStack.stack.save()
             
             // Reset the toggle loadNewAlbum bar button
             toggleNewAlbumButton(delete: false)
@@ -252,7 +253,10 @@ extension PhotoAlbumViewController {
         // images were found should be displayed
         if imageInformations.count <= 0 {
             DispatchQueue.main.async {
-                self.noImagesFoundLabel.isHidden = false
+                if self.images.count <= 0 {
+                    self.noImagesFoundLabel.isHidden = false
+                }
+                self.loadNewAlbumButton.isEnabled = true
             }
         } else {
             DispatchQueue.main.async {
@@ -261,7 +265,6 @@ extension PhotoAlbumViewController {
             // TODO: Fix Core Data
             // If image URLs are available the photos associated to the pin should be removed as they will be replaced by new photos
             pin.removePhotos()
-            CoreDataStack.stack.save()
             self.images = [[String:UIImage]]()
         }
         
