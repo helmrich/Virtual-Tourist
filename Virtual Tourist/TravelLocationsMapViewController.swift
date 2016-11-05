@@ -128,6 +128,7 @@ extension TravelLocationsMapViewController: MKMapViewDelegate {
         guard !isInDeleteMode else {
             mapView.removeAnnotation(annotation)
             CoreDataStack.stack.deletePin(forLatitude: annotation.coordinate.latitude, andLongitude: annotation.coordinate.longitude)
+            CoreDataStack.stack.save()
             return
         }
         
