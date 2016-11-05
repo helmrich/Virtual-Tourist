@@ -66,7 +66,7 @@
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" title="Virtual Tourist" id="92o-sF-GED">
-                        <barButtonItem key="rightBarButtonItem" title="Item" systemItem="edit" id="6kV-cO-NYK">
+                        <barButtonItem key="rightBarButtonItem" systemItem="edit" id="6kV-cO-NYK">
                             <connections>
                                 <action selector="toggleDeleteMode" destination="56C-N7-4Ak" id="tBF-aH-P8D"/>
                             </connections>
