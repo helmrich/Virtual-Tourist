@@ -21,6 +21,7 @@ class CoreDataStack: NSObject {
     lazy var persistentContainer: NSPersistentContainer = {
         let container = NSPersistentContainer(name: "Model")
         
+        // If another context changes the changes should be merged into this context automatically
         container.viewContext.automaticallyMergesChangesFromParent = true
         
         container.loadPersistentStores(completionHandler: { (storeDescription, error) in
@@ -96,9 +97,14 @@ extension CoreDataStack {
     }
     
     func deletePin(forLatitude latitude: Double, andLongitude longitude: Double) {
+        // Create a predicate with conditions for latitude and longitude connected with AND
         let predicate = NSPredicate(format: "latitude == %@ AND longitude == %@", argumentArray: [latitude, longitude])
+        
+        // Create a fetch request for the Pin entity and set its predicate property
         let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Pin")
         fetchRequest.predicate = predicate
+        
+        // Create and execute a batch delete request from the fetch request
         let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
         do {
             try CoreDataStack.stack.persistentContainer.viewContext.execute(batchDeleteRequest)
