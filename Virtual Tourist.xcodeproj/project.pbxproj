@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D23849211DCE91C200DC0CA7 /* PhotoAlbumFetchedResultsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D23849201DCE91C200DC0CA7 /* PhotoAlbumFetchedResultsController.swift */; };
 		D239EC9B1DCA224800778B85 /* ColorExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D239EC9A1DCA224800778B85 /* ColorExtensions.swift */; };
 		D239ECA21DCABB5A00778B85 /* Pin+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = D239EC9E1DCABB5A00778B85 /* Pin+CoreDataClass.swift */; };
 		D239ECA31DCABB5A00778B85 /* Pin+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = D239EC9F1DCABB5A00778B85 /* Pin+CoreDataProperties.swift */; };
@@ -30,6 +31,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		D23849201DCE91C200DC0CA7 /* PhotoAlbumFetchedResultsController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PhotoAlbumFetchedResultsController.swift; sourceTree = "<group>"; };
 		D239EC9A1DCA224800778B85 /* ColorExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorExtensions.swift; sourceTree = "<group>"; };
 		D239EC9E1DCABB5A00778B85 /* Pin+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Pin+CoreDataClass.swift"; path = "../Pin+CoreDataClass.swift"; sourceTree = "<group>"; };
 		D239EC9F1DCABB5A00778B85 /* Pin+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Pin+CoreDataProperties.swift"; path = "../Pin+CoreDataProperties.swift"; sourceTree = "<group>"; };
@@ -123,6 +125,7 @@
 			children = (
 				D287AF0F1DBD367F003D8914 /* TravelLocationsMapViewController.swift */,
 				D287AF111DBD36DD003D8914 /* PhotoAlbumViewController.swift */,
+				D23849201DCE91C200DC0CA7 /* PhotoAlbumFetchedResultsController.swift */,
 				D239ECA61DCD0B6C00778B85 /* PhotoAlbumImageCollectionViewDataSource.swift */,
 				D239ECAC1DCD0C2200778B85 /* PhotoAlbumImageCollectionViewDelegate.swift */,
 				D239ECAE1DCD0C5700778B85 /* PhotoAlbumMapViewDataSource.swift */,
@@ -251,6 +254,7 @@
 				D2CA2C451DBEA727001AE4ED /* CoreDataStack.swift in Sources */,
 				D287AF101DBD367F003D8914 /* TravelLocationsMapViewController.swift in Sources */,
 				D2AF7A061DC018ED0021EAA3 /* FlickrConstant.swift in Sources */,
+				D23849211DCE91C200DC0CA7 /* PhotoAlbumFetchedResultsController.swift in Sources */,
 				D239ECAD1DCD0C2200778B85 /* PhotoAlbumImageCollectionViewDelegate.swift in Sources */,
 				D2AF7A001DBFED060021EAA3 /* FlickrClient.swift in Sources */,
 				D287AF121DBD36DD003D8914 /* PhotoAlbumViewController.swift in Sources */,

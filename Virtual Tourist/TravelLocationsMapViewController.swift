@@ -25,6 +25,11 @@ class TravelLocationsMapViewController: UIViewController {
     @IBAction func toggleDeleteMode() {
         isInDeleteMode = !isInDeleteMode
         deleteInformationLabel.isHidden = !isInDeleteMode
+        if isInDeleteMode {
+            navigationController?.navigationBar.topItem?.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(toggleDeleteMode))
+        } else {
+            navigationController?.navigationBar.topItem?.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .edit, target: self, action: #selector(toggleDeleteMode))
+        }
     }
     
     // MARK: - Lifecycle Methods

@@ -15,8 +15,9 @@ class PhotoAlbumViewController: UIViewController {
     // MARK: - Properties
     
     var pin: Pin?
-    var numberOfImages: Int = 0
     var numberOfImagePages: Int?
+    
+    var fetchedResultsController: NSFetchedResultsController<NSFetchRequestResult>!
     
     var annotation: MKAnnotation? {
         // Every time the annotation property is set try to get a pin managed object for its latitude and longitude values
@@ -38,16 +39,6 @@ class PhotoAlbumViewController: UIViewController {
             }
         }
     }
-    
-    var images = [[String:UIImage]]() {
-        // Every time the images property gets set the collection view should reload its data
-        didSet {
-            DispatchQueue.main.async {
-                self.imageCollectionView.reloadData()
-            }
-        }
-    }
-    
     
     // MARK: - Outlets and Actions
     
@@ -81,24 +72,14 @@ class PhotoAlbumViewController: UIViewController {
                 return
             }
             
-            // Overwrite the images property with a filtered version of it that doesn't contain
-            // images with an ID that matches any of the selected images' IDs
-            images = images.filter {
-                // Assume that the current image can stay in the array
-                var shouldStay = true
-                for (key, _) in $0 {
-                    // If the key (ID) is in the selectedImageIds array the image should be removed from the array
-                    shouldStay = !(selectedImageIds.contains(key))
-                }
-                return shouldStay
-            }
-            
-            // Reset the numberOfImages property
-            numberOfImages = images.count
-            
             // Remove the photos from the Pin managed object
-            pin.removePhotos(withIds: selectedImageIds)
-            CoreDataStack.stack.save()
+            if let removingPhotos = pin.getRemovingPhotos(withIds: selectedImageIds) {
+                for removingPhoto in removingPhotos {
+                    fetchedResultsController.managedObjectContext.delete(removingPhoto)
+                    pin.removeFromPhotos(removingPhoto)
+                    CoreDataStack.stack.save()
+                }
+            }
             
             // Reset the toggle loadNewAlbum bar button
             toggleNewAlbumButton(delete: false)
@@ -119,10 +100,18 @@ class PhotoAlbumViewController: UIViewController {
         flowLayout.minimumLineSpacing = 1
         
         imageCollectionView.allowsMultipleSelection = true
+        
+        initializeFetchedResultsController()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        
+        
+        
+        print(pin)
+        
+        
         
         // Show the navigation bar
         navigationController?.setNavigationBarHidden(false, animated: true)
@@ -145,25 +134,9 @@ class PhotoAlbumViewController: UIViewController {
                 if let photos = pin.photos,
                     photos.count > 0 {
                     
-                    // if there are, set the number of images to the amount of photos
-                    numberOfImages = photos.count
-                    
                     loadingCollectionViewActivityIndicatorView.isHidden = true
                     loadingCollectionViewActivityIndicatorView.stopAnimating()
-                    print(loadingCollectionViewActivityIndicatorView.isHidden)
                     
-                    // Iterate over all the photos,
-                    for photo in photos {
-                        // cast each photo to the Photo type, access its imageData property to get the image data
-                        // and try to create an image from the data
-                        if let imageData = (photo as? Photo)?.imageData,
-                            let imageId = (photo as? Photo)?.id,
-                            let image = UIImage(data: imageData as Data) {
-                            // and append it to the view controller's images property
-                            images.append([imageId:image])
-                            imageCollectionView.reloadData()
-                        }
-                    }
                 } else {
                     // If there are no photos associated with the pin get new images
                     getNewImages(forPin: pin)
@@ -171,8 +144,6 @@ class PhotoAlbumViewController: UIViewController {
             } else {
                 print("Couldn't find pin that matches specified coordinate")
             }
-            
-            
         }
         
     }
@@ -242,8 +213,6 @@ extension PhotoAlbumViewController {
     }
     
     func downloadImages(fromImageInformations imageInformations: [String:URL], forPin pin: Pin) {
-        self.numberOfImages = imageInformations.count
-        
         DispatchQueue.main.async {
             self.loadingCollectionViewActivityIndicatorView.isHidden = true
             self.loadingCollectionViewActivityIndicatorView.stopAnimating()
@@ -252,27 +221,39 @@ extension PhotoAlbumViewController {
         // If there are no image URLs available a label indicating that no
         // images were found should be displayed
         if imageInformations.count <= 0 {
+            print("Keeping old images")
             DispatchQueue.main.async {
-                if self.images.count <= 0 {
+                if self.imageCollectionView.numberOfItems(inSection: 0) <= 0 {
                     self.noImagesFoundLabel.isHidden = false
                 }
                 self.loadNewAlbumButton.isEnabled = true
             }
         } else {
+            print("Deleting old images")
             DispatchQueue.main.async {
                 self.noImagesFoundLabel.isHidden = true
             }
-            // TODO: Fix Core Data
             // If image URLs are available the photos associated to the pin should be removed as they will be replaced by new photos
-            pin.removePhotos()
-            self.images = [[String:UIImage]]()
+            
+            DispatchQueue.main.async {
+                if let pinPhotos = pin.getAllPinPhotos() {
+                    for photo in pinPhotos {
+                        self.fetchedResultsController.managedObjectContext.delete(photo)
+                        do {
+                            try self.fetchedResultsController.managedObjectContext.save()
+                        } catch {
+                            print("Error when saving Fetched Results Controller's managed object context: \(error.localizedDescription)")
+                        }
+                    }
+                }
+            }
+            
         }
-        
-        print(imageInformations)
-        print(imageInformations.count)
         
         for (imageId, imageUrl) in imageInformations {
             FlickrClient.shared.downloadImageData(fromUrl: imageUrl, completionHandlerForImageData: { (imageData, errorMessage) in
+                
+                print("Downloading image...")
                 
                 // Check if there was an error
                 guard errorMessage == nil else {
@@ -286,29 +267,22 @@ extension PhotoAlbumViewController {
                     return
                 }
                 
-                // TODO: Fix Core Data
-                let photo = Photo(withImageData: imageData, andId: imageId, intoContext: CoreDataStack.stack.persistentContainer.viewContext)
-                pin.addToPhotos(photo)
-                CoreDataStack.stack.save()
-                
-                // Check if the image data can be turned into an image
-                guard let image = UIImage(data: imageData) else {
-                    print("Couldn't create image")
-                    return
-                }
-                
-                print([imageId:image])
-                self.images.append([imageId:image])
-                
-                if self.images.count == imageInformations.count {
-                    DispatchQueue.main.async {
-                        self.loadNewAlbumButton.isEnabled = true
-                        self.imageCollectionView.allowsMultipleSelection = true
-                    }
+                DispatchQueue.main.async {
+                    let photo = Photo(withImageData: imageData, andId: imageId, intoContext: self.fetchedResultsController.managedObjectContext)
+                    pin.addToPhotos(photo)
+                    CoreDataStack.stack.save()
                 }
                 
             })
         }
+        
+        CoreDataStack.stack.save()
+        
+        DispatchQueue.main.async {
+            self.imageCollectionView.allowsMultipleSelection = true
+            self.loadNewAlbumButton.isEnabled = true
+        }
+        
     }
 }
 

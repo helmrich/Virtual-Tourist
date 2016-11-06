@@ -10,7 +10,18 @@ import UIKit
 
 extension PhotoAlbumViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return numberOfImages
+        guard let sections = fetchedResultsController.sections else {
+            fatalError("No sections in fetchedResultsController")
+        }
+        return sections[section].numberOfObjects
+    }
+    
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
+        if let fetchedResultsControllerSections = fetchedResultsController.sections {
+            return fetchedResultsControllerSections.count
+        } else {
+            return 0
+        }
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -27,20 +38,16 @@ extension PhotoAlbumViewController: UICollectionViewDataSource {
         cell.activityIndicatorView.isHidden = false
         cell.activityIndicatorView.startAnimating()
         
-        // Check if the number of images is higher than the indexPath's row property
-        // which means that there is at least one more image that can be shown in a cell
-        if images.count > indexPath.row {
+        if let currentPhoto = fetchedResultsController.object(at: indexPath) as? Photo {
             // Hide the activity indicator and stop its animation
             cell.activityIndicatorView.isHidden = true
             cell.activityIndicatorView.stopAnimating()
             
-            // Get the image ID and the image itself
-            for (imageId, image) in images[indexPath.row] {
-                // and set the cell's properties to the values
-                cell.imageId = imageId
-                cell.imageView.image = image
-            }
+            // and set the cell's properties to the values
+            cell.imageId = currentPhoto.id
+            cell.imageView.image = UIImage(data: currentPhoto.imageData as Data)
         }
+        
         
         // Check if the selectedImageIds array contains the current cell's image ID
         if let imageId = cell.imageId,
