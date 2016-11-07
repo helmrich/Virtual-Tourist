@@ -20,15 +20,21 @@ class FlickrClient {
     
     // MARK: - Methods
     
+    // This method gets image informations (an ID with an associated URL) as well as
+    // the number of pages that were found for the specified parameters by creating
+    // a Flickr URL with a set of parameters that are either specified in the FlickrConstant
+    // struct or passed to the method.
+    
+    // Note: The number of pages is passed to the completion handler for the next time the user
+    // requests image informations for the same location so that a random page can be
+    // requested for the next request for example.
     func getImageInformations(forLatitude latitude: Double, andLongitude longitude: Double, withRadius radius: Double = 1, fromPage pageNumber: Int = 1, completionHandlerForImageInformations: @escaping (_ imageInformations: [String:URL]?, _ numberOfPages: Int?, _ errorMessage: String?) -> Void) {
-        
-        print("Getting image informations from page \(pageNumber)")
         
         // Set the parameters
         let parameters: [String:Any] = [
             FlickrConstant.ParameterKey.apiKey: FlickrConstant.ParameterValue.apiKey,
             FlickrConstant.ParameterKey.format: FlickrConstant.ParameterValue.jsonFormat,
-            FlickrConstant.ParameterKey.noJSONCallback: 1,
+            FlickrConstant.ParameterKey.noJSONCallback: FlickrConstant.ParameterValue.noJSONCallback,
             FlickrConstant.ParameterKey.method: FlickrConstant.Method.photosSearch,
             FlickrConstant.ParameterKey.extras: FlickrConstant.ParameterValue.imageMediumUrl,
             FlickrConstant.ParameterKey.photosPerPage: FlickrConstant.ParameterValue.photosPerPage,
@@ -44,33 +50,27 @@ class FlickrClient {
             return
         }
         
-        print(url)
-        
         // Create the request
         let request = URLRequest(url: url)
         
         let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
             
-            // Check if there was an error
             guard error == nil else {
                 completionHandlerForImageInformations(nil, nil, "Error: \(error!.localizedDescription)")
                 return
             }
             
-            // Check if the status code implies a successful response
             guard let statusCode = (response as? HTTPURLResponse)?.statusCode,
                 statusCode >= 200 && statusCode <= 299 else {
                     completionHandlerForImageInformations(nil, nil, "Received unsuccessful status code")
                     return
             }
             
-            // Check if data was received
             guard let data = data else {
                 completionHandlerForImageInformations(nil, nil, "No data received")
                 return
             }
             
-            // Deserialize the received data into a usable JSON object
             let jsonData: [String:Any]
             do {
                 jsonData = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as! [String:Any]
@@ -79,7 +79,7 @@ class FlickrClient {
                 return
             }
             
-            // Get the array of photo dictionaries by extracting them from the JSON object
+            // Get the number of pages and the array of photo dictionaries by extracting them from the JSON object
             guard let photos = jsonData[FlickrConstant.JSONResponseKey.photos] as? [String:Any],
                 let numberOfPages = photos[FlickrConstant.JSONResponseKey.pages] as? Int,
                 let photoArray = photos[FlickrConstant.JSONResponseKey.photoArray] as? [[String:Any]] else {
@@ -88,10 +88,11 @@ class FlickrClient {
             }
             
             
-            // Create an empty array of NSData objects and fill it by iterating over all the received image dictionaries
-            // and using the images' URL string to create NSData objects from URLs
+            // Create an empty dictionary with strings as keys (image ID) and an associated URL
+            // as a value and fill it by iterating over all items in the array of photo dictionaries
             var imageInformations = [String:URL]()
             for photo in photoArray {
+                // Extract the needed values (image URL, image ID) from the photo dictionary
                 guard let currentImageUrlString = photo[FlickrConstant.JSONResponseKey.imageMediumUrl] as? String,
                     let currentImageUrl = URL(string: currentImageUrlString),
                     let currentImageId = photo[FlickrConstant.JSONResponseKey.id] as? String else {
@@ -103,7 +104,7 @@ class FlickrClient {
                 
             }
             
-            // Call the completion handler and pass it the image data
+            // Call the completion handler and pass it the image informations and number of available pages
             completionHandlerForImageInformations(imageInformations, numberOfPages, nil)
             
         }

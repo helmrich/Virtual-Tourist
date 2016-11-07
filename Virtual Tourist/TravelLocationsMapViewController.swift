@@ -59,12 +59,6 @@ class TravelLocationsMapViewController: UIViewController {
         
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        
-    }
-    
-    
     // MARK: - Functions
 
     func placeAnnotation(sender: UILongPressGestureRecognizer) {

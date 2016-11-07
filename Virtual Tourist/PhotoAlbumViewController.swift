@@ -102,16 +102,11 @@ class PhotoAlbumViewController: UIViewController {
         imageCollectionView.allowsMultipleSelection = true
         
         initializeFetchedResultsController()
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
-        
-        
-        print(pin)
-        
-        
         
         // Show the navigation bar
         navigationController?.setNavigationBarHidden(false, animated: true)
@@ -130,8 +125,11 @@ class PhotoAlbumViewController: UIViewController {
             
             // Try to get a pin with the current annotation's latitude and longitude, if there is a matching pin object,
             if let pin = pin {
+                
+                print(pin)
+                
                 // try to get its photos and check if there are any photos associated to the pin already...
-                if let photos = pin.photos,
+                if let photos = pin.getAllPinPhotos(),
                     photos.count > 0 {
                     
                     loadingCollectionViewActivityIndicatorView.isHidden = true
@@ -141,12 +139,10 @@ class PhotoAlbumViewController: UIViewController {
                     // If there are no photos associated with the pin get new images
                     getNewImages(forPin: pin)
                 }
-            } else {
-                print("Couldn't find pin that matches specified coordinate")
             }
         }
-        
     }
+    
 }
 
 
@@ -268,15 +264,16 @@ extension PhotoAlbumViewController {
                 }
                 
                 DispatchQueue.main.async {
+                    // Create a Photo managed object from the image data and ID and insert it into the fetchedResultsController's context
                     let photo = Photo(withImageData: imageData, andId: imageId, intoContext: self.fetchedResultsController.managedObjectContext)
-                    pin.addToPhotos(photo)
+                    
+                    // Set the photo's pin relation to the current pin
+                    photo.pin = pin
                     CoreDataStack.stack.save()
                 }
                 
             })
         }
-        
-        CoreDataStack.stack.save()
         
         DispatchQueue.main.async {
             self.imageCollectionView.allowsMultipleSelection = true

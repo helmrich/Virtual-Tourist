@@ -19,7 +19,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     // MARK: - Functions
     
     func checkIfFirstStart() {
-        // Check if it's the app's first start by checking if the a value for the "wasStartedBefore" was set
+        // Check if it's the app's first start by checking if the a value for the "wasStartedBefore" key was set
         if let _ = UserDefaults.standard.value(forKey: "wasStartedBefore") { } else {
             // If it's the first start set initial values for the keys that will be used to set a region
             UserDefaults.standard.setValue(true, forKey: "wasStartedBefore")
@@ -50,7 +50,5 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationWillTerminate(_ application: UIApplication) {
         CoreDataStack.stack.save()
     }
-
-
 }
 
