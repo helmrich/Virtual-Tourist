@@ -105,9 +105,14 @@ public class Pin: NSManagedObject {
     }
     
     func getAllPinPhotos() -> [Photo]? {
-        // Create a fetch request for the Photo entity
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Photo")
+        // Create a predicate with the condition that the photo's pin relation matches the pin this method is called on
+        let predicate = NSPredicate(format: "pin == %@", argumentArray: [self])
         
+        // Create the fetch request and set its predicate property
+        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Photo")
+        fetchRequest.predicate = predicate
+        
+        // Try to fetch the photos and return them if there are photos
         do {
             let photos = try CoreDataStack.stack.persistentContainer.viewContext.fetch(fetchRequest) as? [Photo]
             return photos
