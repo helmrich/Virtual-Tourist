@@ -239,12 +239,12 @@ extension PhotoAlbumViewController {
             FlickrClient.shared.downloadImageData(fromUrl: imageUrl, completionHandlerForImageData: { (imageData, errorMessage) in
                 
                 guard errorMessage == nil else {
-                    print(errorMessage!)
+                    self.presentAlertController(withMessage: errorMessage!)
                     return
                 }
                 
                 guard let imageData = imageData as? Data else {
-                    print("Couldn't get image data")
+                    self.presentAlertController(withMessage: "Couldn't get image data")
                     return
                 }
                 
