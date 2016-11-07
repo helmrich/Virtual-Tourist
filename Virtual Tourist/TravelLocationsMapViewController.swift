@@ -14,6 +14,8 @@ class TravelLocationsMapViewController: UIViewController {
 
     // MARK: - Properties
     
+    // This property indicates whether the pins on the map should be
+    // deleted when they're tapped or not
     var isInDeleteMode = false
     
     
@@ -23,6 +25,8 @@ class TravelLocationsMapViewController: UIViewController {
     @IBOutlet weak var deleteInformationLabel: UILabel!
     
     @IBAction func toggleDeleteMode() {
+        // Reverse isInDeleteMode's value, set the visibility of the deleteInformationLabel and
+        // the right bar button item depending on its value
         isInDeleteMode = !isInDeleteMode
         deleteInformationLabel.isHidden = !isInDeleteMode
         if isInDeleteMode {
@@ -32,16 +36,18 @@ class TravelLocationsMapViewController: UIViewController {
         }
     }
     
+    
     // MARK: - Lifecycle Methods
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // Add long press gesture recognizer to map view in order to place an annotation
-        // after the user taps the map view with a long tap
+        // Add a long press gesture recognizer to the map view in order to place an annotation
+        // on the map after the user taps the map view with a long tap
         let longPressGestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(placeAnnotation))
         travelLocationsMapView.addGestureRecognizer(longPressGestureRecognizer)
         
+        // Set the map's region
         setStartRegion()
         
         // Get all pins from the view context and place them on the travel locations map view
@@ -83,8 +89,10 @@ class TravelLocationsMapViewController: UIViewController {
         }
     }
     
-    // This function should be used to set the region of the travelLocationsMapView after starting the application
-    // The region could look slightly different compared to how it looked when the app was closed as the "zoom" snaps to the closest "zoom level"
+    // This function should be used to set the region of the travelLocationsMapView
+    // after starting the application
+    // Note: The region could look slightly different compared to how it looked when
+    // the app was closed as the "zoom" snaps to the closest "zoom level"
     func setStartRegion() {
         // Get the values needed to create a coordinate and coordinate span from the user defaults
         let startCenterLatitude = UserDefaults.standard.double(forKey: UserDefaultKey.currentCenterLatitude.rawValue)
@@ -99,74 +107,6 @@ class TravelLocationsMapViewController: UIViewController {
         // Create and set the region from the center coordinate and span
         let startRegion = MKCoordinateRegion(center: centerCoordinate, span: span)
         travelLocationsMapView.setRegion(startRegion, animated: false)
-    }
-    
-}
-
-// MARK: - Map View delegate
-
-extension TravelLocationsMapViewController: MKMapViewDelegate {
-    func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
-        // Every time the region changes (when the user scrolls or zooms for example) the values needed to set a region
-        // (center, span) should be set in the user defaults so that the region is the same when the app is started again
-        let currentRegion = mapView.region
-        UserDefaults.standard.set(currentRegion.center.latitude, forKey: UserDefaultKey.currentCenterLatitude.rawValue)
-        UserDefaults.standard.set(currentRegion.center.longitude, forKey: UserDefaultKey.currentCenterLongitude.rawValue)
-        UserDefaults.standard.set(currentRegion.span.latitudeDelta, forKey: UserDefaultKey.currentSpanLatitudeDelta.rawValue)
-        UserDefaults.standard.set(currentRegion.span.longitudeDelta, forKey: UserDefaultKey.currentSpanLongitudeDelta.rawValue)
-    }
-    
-    func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
-        
-        // Get the tapped annotation view's annotation
-        guard let annotation = view.annotation else {
-            print("Tapped annotation view doesn't have an annotation")
-            return
-        }
-        
-        guard !isInDeleteMode else {
-            mapView.removeAnnotation(annotation)
-            CoreDataStack.stack.deletePin(forLatitude: annotation.coordinate.latitude, andLongitude: annotation.coordinate.longitude)
-            CoreDataStack.stack.save()
-            return
-        }
-        
-        // Instantiate a photo album view controller from the storyboard and pass it the selected annotation view's annotation
-        let photoAlbumViewController = storyboard?.instantiateViewController(withIdentifier: "photoAlbumViewController") as! PhotoAlbumViewController
-        photoAlbumViewController.annotation = annotation
-        
-        // Deselect the selected annotation before the photo album view controller gets pushed on the navigation controller's stack
-        // so that the same annotation can be selected again after the user goes back to the TravelLocationsMapViewController
-        travelLocationsMapView.deselectAnnotation(annotation, animated: true)
-        
-        navigationController?.pushViewController(photoAlbumViewController, animated: true)
-    }
-    
-    func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
-        // Check if a reusable annotation view with the "pin" identifier can be dequeued from the map view
-        guard let annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: "pin") else {
-            // If not, create an annotation view with the "pin" reuse identifier,
-            let annotationView = MKAnnotationView(annotation: annotation, reuseIdentifier: "pin")
-            
-            // Get the custom pin image
-            let pinImage = UIImage(named: "VTPin")
-            
-            // Resize the image
-            let pinImageSize = CGSize(width: 30, height: 42)
-            UIGraphicsBeginImageContext(pinImageSize)
-            pinImage!.draw(in: CGRect(x: 0, y: 0, width: pinImageSize.width, height: pinImageSize.height))
-            let resizedImage = UIGraphicsGetImageFromCurrentImageContext()
-            UIGraphicsEndImageContext()
-            
-            // Set the annotation view's image property to the custom image and set a center offset with a y-value
-            // of negative the half of the pin image's height so that the bottom of the image points to the annotation view's coordinate
-            annotationView.image = resizedImage
-            annotationView.centerOffset = CGPoint(x: 0, y: -(pinImageSize.height / 2))
-            return annotationView
-        }
-        
-        return annotationView
-        
     }
     
 }

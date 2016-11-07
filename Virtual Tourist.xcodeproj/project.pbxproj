@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		D23849211DCE91C200DC0CA7 /* PhotoAlbumFetchedResultsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D23849201DCE91C200DC0CA7 /* PhotoAlbumFetchedResultsController.swift */; };
+		D23849231DD117C700DC0CA7 /* TravelLocationsMapViewDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D23849221DD117C700DC0CA7 /* TravelLocationsMapViewDelegate.swift */; };
+		D23849251DD11AD400DC0CA7 /* PresentAlertControllerExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D23849241DD11AD400DC0CA7 /* PresentAlertControllerExtension.swift */; };
 		D239EC9B1DCA224800778B85 /* ColorExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D239EC9A1DCA224800778B85 /* ColorExtensions.swift */; };
 		D239ECA21DCABB5A00778B85 /* Pin+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = D239EC9E1DCABB5A00778B85 /* Pin+CoreDataClass.swift */; };
 		D239ECA31DCABB5A00778B85 /* Pin+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = D239EC9F1DCABB5A00778B85 /* Pin+CoreDataProperties.swift */; };
@@ -32,6 +34,8 @@
 
 /* Begin PBXFileReference section */
 		D23849201DCE91C200DC0CA7 /* PhotoAlbumFetchedResultsController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PhotoAlbumFetchedResultsController.swift; sourceTree = "<group>"; };
+		D23849221DD117C700DC0CA7 /* TravelLocationsMapViewDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TravelLocationsMapViewDelegate.swift; sourceTree = "<group>"; };
+		D23849241DD11AD400DC0CA7 /* PresentAlertControllerExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PresentAlertControllerExtension.swift; sourceTree = "<group>"; };
 		D239EC9A1DCA224800778B85 /* ColorExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorExtensions.swift; sourceTree = "<group>"; };
 		D239EC9E1DCABB5A00778B85 /* Pin+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Pin+CoreDataClass.swift"; path = "../Pin+CoreDataClass.swift"; sourceTree = "<group>"; };
 		D239EC9F1DCABB5A00778B85 /* Pin+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Pin+CoreDataProperties.swift"; path = "../Pin+CoreDataProperties.swift"; sourceTree = "<group>"; };
@@ -116,6 +120,7 @@
 			children = (
 				D2804FE11DC247D200E2577F /* ImageCollectionViewCell.swift */,
 				D239EC9A1DCA224800778B85 /* ColorExtensions.swift */,
+				D23849241DD11AD400DC0CA7 /* PresentAlertControllerExtension.swift */,
 			);
 			name = View;
 			sourceTree = "<group>";
@@ -124,6 +129,7 @@
 			isa = PBXGroup;
 			children = (
 				D287AF0F1DBD367F003D8914 /* TravelLocationsMapViewController.swift */,
+				D23849221DD117C700DC0CA7 /* TravelLocationsMapViewDelegate.swift */,
 				D287AF111DBD36DD003D8914 /* PhotoAlbumViewController.swift */,
 				D23849201DCE91C200DC0CA7 /* PhotoAlbumFetchedResultsController.swift */,
 				D239ECA61DCD0B6C00778B85 /* PhotoAlbumImageCollectionViewDataSource.swift */,
@@ -259,6 +265,8 @@
 				D2AF7A001DBFED060021EAA3 /* FlickrClient.swift in Sources */,
 				D287AF121DBD36DD003D8914 /* PhotoAlbumViewController.swift in Sources */,
 				D239EC9B1DCA224800778B85 /* ColorExtensions.swift in Sources */,
+				D23849251DD11AD400DC0CA7 /* PresentAlertControllerExtension.swift in Sources */,
+				D23849231DD117C700DC0CA7 /* TravelLocationsMapViewDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

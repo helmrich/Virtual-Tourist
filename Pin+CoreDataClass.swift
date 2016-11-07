@@ -22,11 +22,17 @@ public class Pin: NSManagedObject {
         
     }
     
+    // This method removes all photos from a pin
     func removePhotos() {
+        
+        // Create a fetch request for photos with the pin the method is used on as a predicate condition
+        // and create a batch delete request from it
         let predicate = NSPredicate(format: "pin == %@", argumentArray: [self])
         let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Photo")
         fetchRequest.predicate = predicate
         let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+        
+        // Execute the batch delete request and save the Core Data stack
         do {
             try CoreDataStack.stack.persistentContainer.viewContext.execute(batchDeleteRequest)
             CoreDataStack.stack.save()
@@ -43,7 +49,8 @@ public class Pin: NSManagedObject {
         // Instantiate an empty array of NSPredicate
         var predicates = [NSPredicate]()
         
-        // Create a predicate for each ID in the array that was passed in as an array and append it to the array created above
+        // Create a predicate for each ID in the array that was passed in as an array
+        // and append it to the array created above
         for id in ids {
             let predicate = NSPredicate(format: "id == %@", argumentArray: [id])
             predicates.append(predicate)
@@ -52,12 +59,14 @@ public class Pin: NSManagedObject {
         // Create a compound predicate that connects all the ID predicates with "OR"
         let idCompoundPredicate = NSCompoundPredicate(orPredicateWithSubpredicates: predicates)
         
-        // Create a pin predicate which should check if the photos actually belong to the pin and create a compound predicate by
-        // connecting the pin predicate and the ID compound predicate with "AND"
+        // Create a pin predicate which should check if the photos actually
+        // belong to the pin and create a compound predicate by connecting the pin
+        // predicate and the ID compound predicate with "AND"
         let pinPredicate = NSPredicate(format: "pin == %@", argumentArray: [self])
         let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [idCompoundPredicate, pinPredicate])
         
-        // Assign the resulting predicate to the fetch request's predicate property and create a batch delete request from the fetch request
+        // Assign the resulting predicate to the fetch request's predicate property
+        // and create a batch delete request from the fetch request
         fetchRequest.predicate = compoundPredicate
         let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
         
@@ -77,7 +86,8 @@ public class Pin: NSManagedObject {
         // Instantiate an empty array of NSPredicate
         var predicates = [NSPredicate]()
         
-        // Create a predicate for each ID in the array that was passed in as an array and append it to the array created above
+        // Create a predicate for each ID in the array that was passed in as an array
+        // and append it to the array created above
         for id in ids {
             let predicate = NSPredicate(format: "id == %@", argumentArray: [id])
             predicates.append(predicate)
@@ -86,8 +96,10 @@ public class Pin: NSManagedObject {
         // Create a compound predicate that connects all the ID predicates with "OR"
         let idCompoundPredicate = NSCompoundPredicate(orPredicateWithSubpredicates: predicates)
         
-        // Create a pin predicate which should check if the photos actually belong to the pin and create a compound predicate by
-        // connecting the pin predicate and the ID compound predicate with "AND"
+        // Create a pin predicate which should check if the photos actually belong to
+        // the pin and create a compound predicate by connecting the pin predicate and
+        // the ID compound predicate with "AND", as the photos that should be removed
+        // should match ONE of the IDs AND the pin the method is used on
         let pinPredicate = NSPredicate(format: "pin == %@", argumentArray: [self])
         let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [idCompoundPredicate, pinPredicate])
         
@@ -105,7 +117,8 @@ public class Pin: NSManagedObject {
     }
     
     func getAllPinPhotos() -> [Photo]? {
-        // Create a predicate with the condition that the photo's pin relation matches the pin this method is called on
+        // Create a predicate with the condition that the photo's pin relation matches
+        // the pin this method is called on
         let predicate = NSPredicate(format: "pin == %@", argumentArray: [self])
         
         // Create the fetch request and set its predicate property

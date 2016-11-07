@@ -42,21 +42,18 @@ class CoreDataStack: NSObject {
 extension CoreDataStack {
     func save() {
         // Check if the context has any changes and try to save it if it has
-
-        
-//        persistentContainer.viewContext.performAndWait {
-            if self.persistentContainer.viewContext.hasChanges {
-                do {
-                    try self.persistentContainer.viewContext.save()
-                } catch {
-                    fatalError("Error when trying to save context: \(error.localizedDescription)")
-                }
+        if self.persistentContainer.viewContext.hasChanges {
+            do {
+                try self.persistentContainer.viewContext.save()
+            } catch {
+                fatalError("Error when trying to save context: \(error.localizedDescription)")
             }
-//        }
+        }
     }
     
-    // Should only be used in development. This function destroys a persistent store and adds a persistent store of same type at the same URL
-    // in order to have an empty persistent store
+    // Should only be used in development. This function destroys a persistent store and
+    // adds a persistent store of same type at the same URL in order to have an empty
+    // persistent store
     func deleteAllData() {
         if let persistentStoreUrl = persistentContainer.persistentStoreCoordinator.persistentStores.first?.url {
             do {

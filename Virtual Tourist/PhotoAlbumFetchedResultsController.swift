@@ -18,8 +18,6 @@ extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
             return
         }
         
-        print("PIN OBJECT ID: \(pin.objectID)")
-        
         let predicate = NSPredicate(format: "pin == %@", argumentArray: [pin])
         
         // Create a fetch request for the Pin entity and assign the predicate to its predicate property
