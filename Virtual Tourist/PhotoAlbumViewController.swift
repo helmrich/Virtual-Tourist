@@ -239,7 +239,7 @@ extension PhotoAlbumViewController {
         initializeFetchedResultsController()
         
         for (imageId, imageUrl) in imageInformations {
-            FlickrClient.shared.downloadImageData(fromUrl: imageUrl, completionHandlerForImageData: { (imageData, errorMessage) in
+            FlickrClient.shared.downloadImageData(fromUrl: imageUrl) { (imageData, errorMessage) in
                 
                 guard errorMessage == nil else {
                     self.presentAlertController(withMessage: errorMessage!)
@@ -251,17 +251,14 @@ extension PhotoAlbumViewController {
                     return
                 }
                 
-//                DispatchQueue.main.async {
-                    // Create a Photo managed object from the image data and ID and insert it into the fetchedResultsController's context
-                    if let fetchedResultsController = self.fetchedResultsController {
-                        let photo = Photo(withImageData: imageData, andId: imageId, intoContext: fetchedResultsController.managedObjectContext)
-                        // Set the photo's pin relation to the current pin
-                        photo.pin = pin
-                        CoreDataStack.stack.save()
-                    }
-//                }
-                
-            })
+                // Create a Photo managed object from the image data and ID and insert it into the fetchedResultsController's context
+                if let fetchedResultsController = self.fetchedResultsController {
+                    let photo = Photo(withImageData: imageData, andId: imageId, intoContext: fetchedResultsController.managedObjectContext)
+                    // Set the photo's pin relation to the current pin
+                    photo.pin = pin
+                    CoreDataStack.stack.save()
+                }
+            }
         }
     }
 }
