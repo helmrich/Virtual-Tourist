@@ -11,13 +11,24 @@ import MapKit
 import CoreData
 
 class PhotoAlbumViewController: UIViewController {
-
+    
     // MARK: - Properties
     
     var pin: Pin?
     var numberOfImagePages: Int?
+    var numberOfImages = 0
     
-    var fetchedResultsController: NSFetchedResultsController<NSFetchRequestResult>!
+    var fetchedResultsController: NSFetchedResultsController<NSFetchRequestResult>?
+    
+    var imageCollectionViewIsDownloading = false {
+        didSet {
+            DispatchQueue.main.async {
+                self.imageCollectionView.allowsSelection = !self.imageCollectionViewIsDownloading
+                self.imageCollectionView.allowsMultipleSelection = !self.imageCollectionViewIsDownloading
+                self.loadNewAlbumButton.isEnabled = !self.imageCollectionViewIsDownloading
+            }
+        }
+    }
     
     var annotation: MKAnnotation? {
         // Every time the annotation property is set try to get a pin managed
@@ -64,7 +75,7 @@ class PhotoAlbumViewController: UIViewController {
         }
         
         if title == "Load New Album" {
-            loadNewAlbumButton.isEnabled = false
+            imageCollectionViewIsDownloading = true
             getNewImages(forPin: pin, randomPage: true)
         } else if title == "Remove Selected Images" {
             // Check if there are selected images
@@ -74,7 +85,8 @@ class PhotoAlbumViewController: UIViewController {
             }
             
             // Remove the photos from the Pin managed object
-            if let removingPhotos = pin.getRemovingPhotos(withIds: selectedImageIds) {
+            if let fetchedResultsController = fetchedResultsController,
+                let removingPhotos = pin.getRemovingPhotos(withIds: selectedImageIds) {
                 for removingPhoto in removingPhotos {
                     fetchedResultsController.managedObjectContext.delete(removingPhoto)
                     pin.removeFromPhotos(removingPhoto)
@@ -97,10 +109,6 @@ class PhotoAlbumViewController: UIViewController {
         flowLayout.itemSize = CGSize(width: view.frame.width * 0.33, height: view.frame.width * 0.33)
         flowLayout.minimumInteritemSpacing = 1
         flowLayout.minimumLineSpacing = 1
-        
-        imageCollectionView.allowsMultipleSelection = true
-        
-        initializeFetchedResultsController()
         
     }
     
@@ -126,7 +134,11 @@ class PhotoAlbumViewController: UIViewController {
                 // try to get its photos and check if there are any photos associated to the pin already...
                 if let photos = pin.getAllPinPhotos(),
                     photos.count > 0 {
+                    print(photos)
+                    numberOfImages = photos.count
                     loadingCollectionViewActivityIndicatorView.stopAnimating()
+                    initializeFetchedResultsController()
+                    print(fetchedResultsController!.fetchedObjects!.count)
                 } else {
                     // If there are no photos associated with the pin get new images
                     getNewImages(forPin: pin)
@@ -168,9 +180,6 @@ extension PhotoAlbumViewController {
             // download images and set its value to the image informations that were already received
             var imageInformations: [String:URL] = initialImageInformations
             
-            // Don't allow the user to select images until the downloads are done
-            self.imageCollectionView.allowsSelection = false
-            
             if randomPage {
                 FlickrClient.shared.getImageInformationsForRandomPage(forLatitude: pin.latitude, andLongitude: pin.longitude, withNumberOfPages: numberOfPages) { (imageInformationsFromRandomPage, errorMessage) in
                     
@@ -186,12 +195,12 @@ extension PhotoAlbumViewController {
                         return
                     }
                     
-                    // Overwrite imageInformations' value as the informations from the random
-                    // page should be used to download images
                     imageInformations = imageInformationsFromRandomPage
+                    self.numberOfImages = imageInformations.count
                     self.downloadImages(fromImageInformations: imageInformations, forPin: pin)
                 }
             } else {
+                self.numberOfImages = imageInformations.count
                 self.downloadImages(fromImageInformations: imageInformations, forPin: pin)
             }
             
@@ -201,6 +210,7 @@ extension PhotoAlbumViewController {
     }
     
     func downloadImages(fromImageInformations imageInformations: [String:URL], forPin pin: Pin) {
+        imageCollectionViewIsDownloading = true
         DispatchQueue.main.async {
             self.loadingCollectionViewActivityIndicatorView.stopAnimating()
         }
@@ -213,27 +223,20 @@ extension PhotoAlbumViewController {
                 if self.imageCollectionView.numberOfItems(inSection: 0) <= 0 {
                     self.noImagesFoundLabel.isHidden = false
                 }
-                self.loadNewAlbumButton.isEnabled = true
+                self.imageCollectionViewIsDownloading = false
             }
         } else {
             DispatchQueue.main.async {
                 self.noImagesFoundLabel.isHidden = true
             }
             // If image URLs are available the photos associated to the pin should be removed as they will be replaced by new photos
-            DispatchQueue.main.async {
-                if let pinPhotos = pin.getAllPinPhotos() {
-                    for photo in pinPhotos {
-                        self.fetchedResultsController.managedObjectContext.delete(photo)
-                        do {
-                            try self.fetchedResultsController.managedObjectContext.save()
-                        } catch {
-                            self.presentAlertController(withMessage: "Error when saving Fetched Results Controller's managed object context: \(error.localizedDescription)")
-                        }
-                    }
-                }
-            }
-            
+            pin.removePhotos()
+//            DispatchQueue.main.async {
+//                self.imageCollectionView.reloadData()
+//            }
         }
+        
+        initializeFetchedResultsController()
         
         for (imageId, imageUrl) in imageInformations {
             FlickrClient.shared.downloadImageData(fromUrl: imageUrl, completionHandlerForImageData: { (imageData, errorMessage) in
@@ -248,23 +251,18 @@ extension PhotoAlbumViewController {
                     return
                 }
                 
-                DispatchQueue.main.async {
+//                DispatchQueue.main.async {
                     // Create a Photo managed object from the image data and ID and insert it into the fetchedResultsController's context
-                    let photo = Photo(withImageData: imageData, andId: imageId, intoContext: self.fetchedResultsController.managedObjectContext)
-                    
-                    // Set the photo's pin relation to the current pin
-                    photo.pin = pin
-                    CoreDataStack.stack.save()
-                }
+                    if let fetchedResultsController = self.fetchedResultsController {
+                        let photo = Photo(withImageData: imageData, andId: imageId, intoContext: fetchedResultsController.managedObjectContext)
+                        // Set the photo's pin relation to the current pin
+                        photo.pin = pin
+                        CoreDataStack.stack.save()
+                    }
+//                }
                 
             })
         }
-        
-        DispatchQueue.main.async {
-            self.imageCollectionView.allowsMultipleSelection = true
-            self.loadNewAlbumButton.isEnabled = true
-        }
-        
     }
 }
 

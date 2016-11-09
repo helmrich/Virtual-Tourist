@@ -26,10 +26,10 @@ extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "id", ascending: true)]
         
         fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: CoreDataStack.stack.persistentContainer.viewContext, sectionNameKeyPath: nil, cacheName: nil)
-        fetchedResultsController.delegate = self
+        fetchedResultsController!.delegate = self
         
         do {
-            try fetchedResultsController.performFetch()
+            try fetchedResultsController!.performFetch()
         } catch {
             fatalError("Error when trying to perform fetch with fetched results controller: \(error.localizedDescription)")
         }
@@ -58,18 +58,21 @@ extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
         imageCollectionView.performBatchUpdates({
             switch type {
             case .insert:
-                print("Inserting item...")
-                self.imageCollectionView.insertItems(at: [newIndexPath!])
+                print("Inserting/reloading item...")
+                self.imageCollectionView.reloadItems(at: [newIndexPath!])
             case .delete:
                 print("Deleting item...")
                 self.imageCollectionView.deleteItems(at: [indexPath!])
+                if self.numberOfImages > 0 {
+                    self.numberOfImages -= 1
+                }
             case .move:
                 print("Moving item...")
                 self.imageCollectionView.moveItem(at: indexPath!, to: newIndexPath!)
             case .update:
                 print("Updating cell...")
                 if let updatedCell = self.imageCollectionView.dequeueReusableCell(withReuseIdentifier: "imageCell", for: indexPath!) as? ImageCollectionViewCell,
-                    let currentPhoto = self.fetchedResultsController.object(at: indexPath!) as? Photo
+                    let currentPhoto = self.fetchedResultsController!.object(at: indexPath!) as? Photo
                 {
                     updatedCell.imageId = currentPhoto.id
                     updatedCell.imageView.image = UIImage(data: currentPhoto.imageData as Data)

@@ -10,21 +10,13 @@ import UIKit
 
 extension PhotoAlbumViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        guard let sections = fetchedResultsController.sections else {
-            fatalError("No sections in fetchedResultsController")
-        }
-        return sections[section].numberOfObjects
-    }
-    
-    func numberOfSections(in collectionView: UICollectionView) -> Int {
-        if let fetchedResultsControllerSections = fetchedResultsController.sections {
-            return fetchedResultsControllerSections.count
-        } else {
-            return 0
-        }
+        return numberOfImages
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        
+        print("CELL INDEX PATH: \(indexPath)")
+        
         // Dequeue a reusable cell and cast it to the ImageCollectionViewCell type
         let cell = imageCollectionView.dequeueReusableCell(withReuseIdentifier: "imageCell", for: indexPath) as! ImageCollectionViewCell
         cell.imageId = nil
@@ -38,14 +30,26 @@ extension PhotoAlbumViewController: UICollectionViewDataSource {
         cell.activityIndicatorView.isHidden = false
         cell.activityIndicatorView.startAnimating()
         
-        if let currentPhoto = fetchedResultsController.object(at: indexPath) as? Photo {
-            // Hide the activity indicator and stop its animation
-            cell.activityIndicatorView.isHidden = true
-            cell.activityIndicatorView.stopAnimating()
+        if let fetchedResultsController = fetchedResultsController,
+            let fetchedObjects = fetchedResultsController.fetchedObjects {
             
-            // and set the cell's properties to the values
-            cell.imageId = currentPhoto.id
-            cell.imageView.image = UIImage(data: currentPhoto.imageData as Data)
+            if fetchedObjects.count > indexPath.row,
+            let currentPhoto = fetchedObjects[indexPath.row] as? Photo {
+                
+                // Hide the activity indicator and stop its animation
+                cell.activityIndicatorView.isHidden = true
+                cell.activityIndicatorView.stopAnimating()
+                
+                // and set the cell's properties to the values
+                cell.imageId = currentPhoto.id
+                cell.imageView.image = UIImage(data: currentPhoto.imageData as Data)
+            }
+            
+            if fetchedObjects.count == numberOfImages {
+                imageCollectionViewIsDownloading = false
+            }
+        } else {
+        
         }
         
         
