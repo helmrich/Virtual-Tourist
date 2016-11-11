@@ -34,7 +34,6 @@ extension TravelLocationsMapViewController: MKMapViewDelegate {
             // annotation's coordinate from Core Data
             mapView.removeAnnotation(annotation)
             CoreDataStack.stack.deletePin(forLatitude: annotation.coordinate.latitude, andLongitude: annotation.coordinate.longitude)
-            CoreDataStack.stack.save()
             return
         }
         
