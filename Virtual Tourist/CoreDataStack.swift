@@ -45,8 +45,8 @@ extension CoreDataStack {
         if self.persistentContainer.viewContext.hasChanges {
             do {
                 try self.persistentContainer.viewContext.save()
-            } catch {
-                fatalError("Error when trying to save context: \(error.localizedDescription)")
+            } catch let error as NSError {
+                fatalError("\(error), \(error.userInfo)")
             }
         }
     }

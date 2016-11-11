@@ -2,7 +2,7 @@
 //  Photo+CoreDataProperties.swift
 //  Virtual Tourist
 //
-//  Created by Tobias Helmrich on 03.11.16.
+//  Created by Tobias Helmrich on 11.11.16.
 //  Copyright © 2016 Tobias Helmrich. All rights reserved.
 //
 
@@ -17,7 +17,7 @@ extension Photo {
     }
 
     @NSManaged public var id: String
-    @NSManaged public var imageData: NSData
+    @NSManaged public var imageData: NSData?
     @NSManaged public var pin: Pin?
 
 }

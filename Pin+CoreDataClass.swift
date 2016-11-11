@@ -35,84 +35,9 @@ public class Pin: NSManagedObject {
         // Execute the batch delete request and save the Core Data stack
         do {
             try CoreDataStack.stack.persistentContainer.viewContext.execute(batchDeleteRequest)
-            CoreDataStack.stack.save()
             print("Deleted photos from pin...")
         } catch {
             fatalError("Error when trying to delete pin's photos: \(error.localizedDescription)")
-        }
-    }
-    
-    func removePhotos(withIds ids: [String]) {
-        // Create a fetch request for the Photo entity
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Photo")
-        
-        // Instantiate an empty array of NSPredicate
-        var predicates = [NSPredicate]()
-        
-        // Create a predicate for each ID in the array that was passed in as an array
-        // and append it to the array created above
-        for id in ids {
-            let predicate = NSPredicate(format: "id == %@", argumentArray: [id])
-            predicates.append(predicate)
-        }
-        
-        // Create a compound predicate that connects all the ID predicates with "OR"
-        let idCompoundPredicate = NSCompoundPredicate(orPredicateWithSubpredicates: predicates)
-        
-        // Create a pin predicate which should check if the photos actually
-        // belong to the pin and create a compound predicate by connecting the pin
-        // predicate and the ID compound predicate with "AND"
-        let pinPredicate = NSPredicate(format: "pin == %@", argumentArray: [self])
-        let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [idCompoundPredicate, pinPredicate])
-        
-        // Assign the resulting predicate to the fetch request's predicate property
-        // and create a batch delete request from the fetch request
-        fetchRequest.predicate = compoundPredicate
-        let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
-        
-        // Try to execute the batch delete request and save it to the context
-        do {
-            try CoreDataStack.stack.persistentContainer.viewContext.execute(batchDeleteRequest)
-            CoreDataStack.stack.save()
-        } catch {
-            print("Error when trying to delete photos from database: \(error)")
-        }
-    }
-    
-    func getRemovingPhotos(withIds ids: [String]) -> [Photo]? {
-        // Create a fetch request for the Photo entity
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Photo")
-        
-        // Instantiate an empty array of NSPredicate
-        var predicates = [NSPredicate]()
-        
-        // Create a predicate for each ID in the array that was passed in as an array
-        // and append it to the array created above
-        for id in ids {
-            let predicate = NSPredicate(format: "id == %@", argumentArray: [id])
-            predicates.append(predicate)
-        }
-        
-        // Create a compound predicate that connects all the ID predicates with "OR"
-        let idCompoundPredicate = NSCompoundPredicate(orPredicateWithSubpredicates: predicates)
-        
-        // Create a pin predicate which should check if the photos actually belong to
-        // the pin and create a compound predicate by connecting the pin predicate and
-        // the ID compound predicate with "AND", as the photos that should be removed
-        // should match ONE of the IDs AND the pin the method is used on
-        let pinPredicate = NSPredicate(format: "pin == %@", argumentArray: [self])
-        let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [idCompoundPredicate, pinPredicate])
-        
-        // Assign the resulting predicate to the fetch request's predicate property
-        fetchRequest.predicate = compoundPredicate
-        
-        // Try to execute the fetch request
-        do {
-            let removalPhotos = try CoreDataStack.stack.persistentContainer.viewContext.fetch(fetchRequest) as? [Photo]
-            return removalPhotos
-        } catch {
-            print("Error when trying to delete photos from database: \(error)")
-            return nil
         }
     }
     
@@ -122,13 +47,40 @@ public class Pin: NSManagedObject {
         let predicate = NSPredicate(format: "pin == %@", argumentArray: [self])
         
         // Create the fetch request and set its predicate property
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Photo")
+        let fetchRequest = NSFetchRequest<Photo>(entityName: "Photo")
         fetchRequest.predicate = predicate
         
         // Try to fetch the photos and return them if there are photos
         do {
-            let photos = try CoreDataStack.stack.persistentContainer.viewContext.fetch(fetchRequest) as? [Photo]
-            return photos
+            let photos = try CoreDataStack.stack.persistentContainer.viewContext.fetch(fetchRequest)
+            if photos.count > 0 {
+                return photos
+            } else {
+                return nil
+            }
+        } catch {
+            print("Error when trying to get pin's photos")
+            return nil
+        }
+    }
+    
+    func getPhoto(withId id: String) -> Photo? {
+        // Create a predicate with the condition that the photo's pin relation matches
+        // the pin this method is called on
+        let predicate = NSPredicate(format: "pin == %@ AND id == %@", argumentArray: [self, id])
+        
+        // Create the fetch request and set its predicate property
+        let fetchRequest = NSFetchRequest<Photo>(entityName: "Photo")
+        fetchRequest.predicate = predicate
+        
+        // Try to fetch the photos and return them if there are photos
+        do {
+            let photos = try CoreDataStack.stack.persistentContainer.viewContext.fetch(fetchRequest)
+            if photos.count > 0 {
+                return photos[0]
+            } else {
+                return nil
+            }
         } catch {
             print("Error when trying to get pin's photos")
             return nil
