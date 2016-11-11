@@ -14,11 +14,23 @@ class PhotoAlbumViewController: UIViewController {
     
     // MARK: - Properties
     
-    var pin: Pin?
+    var pin: Pin!
     var numberOfImagePages: Int?
-    var numberOfImages = 0
+    var numberOfDownloadedImages = 0
     
-    var fetchedResultsController: NSFetchedResultsController<NSFetchRequestResult>?
+    var fetchedResultsController: NSFetchedResultsController<Photo>!
+    var selectedIndexPaths = [IndexPath]() {
+        didSet {
+            if selectedIndexPaths.count > 0 {
+                toggleNewAlbumButton(delete: true)
+            } else {
+                toggleNewAlbumButton(delete: false)
+            }
+        }
+    }
+    var insertedIndexPaths: [IndexPath]!
+    var updatedIndexPaths: [IndexPath]!
+    var deletedIndexPaths: [IndexPath]!
     
     var imageCollectionViewIsDownloading = false {
         didSet {
@@ -40,18 +52,6 @@ class PhotoAlbumViewController: UIViewController {
         }
     }
     
-    var selectedImageIds = [String]() {
-        // Every time the selectedImageIds property is set check if there are IDs,
-        // depending on that the loadNewAlbumButton bar button should be changed accordingly
-        didSet {
-            if selectedImageIds.count > 0 {
-                toggleNewAlbumButton(delete: true)
-            } else {
-                toggleNewAlbumButton(delete: false)
-            }
-        }
-    }
-    
     // MARK: - Outlets and Actions
     
     // MARK: - Outlets
@@ -68,34 +68,28 @@ class PhotoAlbumViewController: UIViewController {
             return
         }
         
-        // Check if there is a Pin managed object
-        guard let pin = pin else {
-            self.presentAlertController(withMessage: "No pin available")
-            return
-        }
-        
         if title == "Load New Album" {
             imageCollectionViewIsDownloading = true
             getNewImages(forPin: pin, randomPage: true)
         } else if title == "Remove Selected Images" {
             // Check if there are selected images
-            guard selectedImageIds.count > 0 else {
+            guard selectedIndexPaths.count > 0 else {
                 self.presentAlertController(withMessage: "No images are selected")
                 return
             }
             
             // Remove the photos from the Pin managed object
-            if let fetchedResultsController = fetchedResultsController,
-                let removingPhotos = pin.getRemovingPhotos(withIds: selectedImageIds) {
-                for removingPhoto in removingPhotos {
-                    fetchedResultsController.managedObjectContext.delete(removingPhoto)
-                    pin.removeFromPhotos(removingPhoto)
-                    CoreDataStack.stack.save()
-                }
+            var removingPhotos = [Photo]()
+            for selectedIndexPath in selectedIndexPaths {
+                removingPhotos.append(fetchedResultsController.object(at: selectedIndexPath))
+            }
+        
+            for removingPhoto in removingPhotos {
+                CoreDataStack.stack.persistentContainer.viewContext.delete(removingPhoto)
             }
             
-            // Reset the toggle loadNewAlbum bar button
-            toggleNewAlbumButton(delete: false)
+            selectedIndexPaths = [IndexPath]()
+            
         }
     }
     
@@ -109,6 +103,8 @@ class PhotoAlbumViewController: UIViewController {
         flowLayout.itemSize = CGSize(width: view.frame.width * 0.33, height: view.frame.width * 0.33)
         flowLayout.minimumInteritemSpacing = 1
         flowLayout.minimumLineSpacing = 1
+        
+        initializeFetchedResultsController()
         
     }
     
@@ -128,21 +124,14 @@ class PhotoAlbumViewController: UIViewController {
             let region = MKCoordinateRegionMakeWithDistance(annotation.coordinate, 4000, 4000)
             mapView.setRegion(region, animated: true)
             
-            
-            // Try to get a pin with the current annotation's latitude and longitude, if there is a matching pin object,
-            if let pin = pin {
-                // try to get its photos and check if there are any photos associated to the pin already...
-                if let photos = pin.getAllPinPhotos(),
-                    photos.count > 0 {
-                    print(photos)
-                    numberOfImages = photos.count
-                    loadingCollectionViewActivityIndicatorView.stopAnimating()
-                    initializeFetchedResultsController()
-                    print(fetchedResultsController!.fetchedObjects!.count)
-                } else {
-                    // If there are no photos associated with the pin get new images
-                    getNewImages(forPin: pin)
-                }
+            // Try to get the pin's photos and check if there are any photos associated to the pin already...
+            if let photos = pin.getAllPinPhotos(),
+                photos.count > 0 {
+                loadingCollectionViewActivityIndicatorView.stopAnimating()
+                imageCollectionViewIsDownloading = false
+            } else {
+                // If there are no photos associated with the pin get new images
+                getNewImages(forPin: pin)
             }
         }
     }
@@ -158,19 +147,16 @@ extension PhotoAlbumViewController {
     func getNewImages(forPin pin: Pin, randomPage: Bool = false) {
         FlickrClient.shared.getImageInformations(forLatitude: pin.latitude, andLongitude: pin.longitude) { (imageInformations, numberOfPages, errorMessage) in
             
-            // Check if there was an error
             guard errorMessage == nil else {
                 self.presentAlertController(withMessage: errorMessage!)
                 return
             }
             
-            // Check if the number of pages was received
             guard let numberOfPages = numberOfPages else {
                 self.presentAlertController(withMessage: "Couldn't get number of pages")
                 return
             }
             
-            // Check if image URLs were received
             guard let initialImageInformations = imageInformations else {
                 self.presentAlertController(withMessage: "Couldn't get image informations")
                 return
@@ -183,25 +169,72 @@ extension PhotoAlbumViewController {
             if randomPage {
                 FlickrClient.shared.getImageInformationsForRandomPage(forLatitude: pin.latitude, andLongitude: pin.longitude, withNumberOfPages: numberOfPages) { (imageInformationsFromRandomPage, errorMessage) in
                     
-                    // Check if there was an error
                     guard errorMessage == nil else {
                         self.presentAlertController(withMessage: errorMessage!)
                         return
                     }
                     
-                    // Check if image informations were received with the specified page number
                     guard let imageInformationsFromRandomPage = imageInformationsFromRandomPage else {
                         self.presentAlertController(withMessage: "Couldn't get image informations from random page")
                         return
                     }
                     
                     imageInformations = imageInformationsFromRandomPage
-                    self.numberOfImages = imageInformations.count
-                    self.downloadImages(fromImageInformations: imageInformations, forPin: pin)
+
+                    DispatchQueue.main.async {
+                        self.checkAvailable(imageInformations: imageInformations)
+                    }
+                    
+                    // Check if there are image informations, if there are, iterate over all photos
+                    // in the fetched results controller and delete them
+                    if imageInformations.count > 0 {
+                        CoreDataStack.stack.persistentContainer.viewContext.performAndWait {
+                            for photo in self.fetchedResultsController.fetchedObjects! as [Photo] {
+                                CoreDataStack.stack.persistentContainer.viewContext.delete(photo)
+                                CoreDataStack.stack.save()
+                            }
+                        }
+                        self.numberOfDownloadedImages = 0
+                    }
+                    
+                    // Get all IDs from the image informations and create Photo managed objects from them
+                    for (id, _) in imageInformations {
+                        CoreDataStack.stack.persistentContainer.viewContext.performAndWait {
+                            let photo = Photo(withImageData: nil, andId: id, intoContext: CoreDataStack.stack.persistentContainer.viewContext)
+                            photo.pin = pin
+                            CoreDataStack.stack.save()
+                        }
+                    }
+                    
+                    self.downloadImages(fromImageInformations: imageInformations)
                 }
             } else {
-                self.numberOfImages = imageInformations.count
-                self.downloadImages(fromImageInformations: imageInformations, forPin: pin)
+                
+                DispatchQueue.main.async {
+                    self.checkAvailable(imageInformations: imageInformations)
+                }
+                
+                // Check if there are image informations, if there are, iterate over all photos
+                // in the fetched results controller and delete them
+                if imageInformations.count > 0 {
+                    CoreDataStack.stack.persistentContainer.viewContext.performAndWait {
+                        for photo in self.fetchedResultsController.fetchedObjects! {
+                            CoreDataStack.stack.persistentContainer.viewContext.delete(photo)
+                            CoreDataStack.stack.save()
+                        }
+                    }
+                    self.numberOfDownloadedImages = 0
+                }
+                
+                // Get all IDs from the image informations and create Photo managed objects from them
+                for (id, _) in imageInformations {
+                    CoreDataStack.stack.persistentContainer.viewContext.performAndWait {
+                        let photo = Photo(withImageData: nil, andId: id, intoContext: CoreDataStack.stack.persistentContainer.viewContext)
+                        photo.pin = pin
+                        CoreDataStack.stack.save()
+                    }
+                }
+                self.downloadImages(fromImageInformations: imageInformations)
             }
             
             
@@ -209,34 +242,14 @@ extension PhotoAlbumViewController {
         }
     }
     
-    func downloadImages(fromImageInformations imageInformations: [String:URL], forPin pin: Pin) {
+    // This function takes a dictionary (ID String:URL) of image informations as a parameter and tries to download the
+    // images' data by looping over all key-value pairs in the dictionary. If data for an image could be downloaded,
+    // the imageData property of the photo managed object with the matching image ID should be set
+    func downloadImages(fromImageInformations imageInformations: [String:URL]) {
         imageCollectionViewIsDownloading = true
         DispatchQueue.main.async {
             self.loadingCollectionViewActivityIndicatorView.stopAnimating()
         }
-        
-        // If there are no image URLs available a label indicating that no
-        // images were found should be displayed
-        if imageInformations.count <= 0 {
-            DispatchQueue.main.async {
-                // In this app it can be assumed that there is only one section
-                if self.imageCollectionView.numberOfItems(inSection: 0) <= 0 {
-                    self.noImagesFoundLabel.isHidden = false
-                }
-                self.imageCollectionViewIsDownloading = false
-            }
-        } else {
-            DispatchQueue.main.async {
-                self.noImagesFoundLabel.isHidden = true
-            }
-            // If image URLs are available the photos associated to the pin should be removed as they will be replaced by new photos
-            pin.removePhotos()
-//            DispatchQueue.main.async {
-//                self.imageCollectionView.reloadData()
-//            }
-        }
-        
-        initializeFetchedResultsController()
         
         for (imageId, imageUrl) in imageInformations {
             FlickrClient.shared.downloadImageData(fromUrl: imageUrl) { (imageData, errorMessage) in
@@ -246,17 +259,21 @@ extension PhotoAlbumViewController {
                     return
                 }
                 
-                guard let imageData = imageData as? Data else {
+                guard let imageData = imageData else {
                     self.presentAlertController(withMessage: "Couldn't get image data")
                     return
                 }
                 
+                CoreDataStack.stack.persistentContainer.viewContext.performAndWait {
                 // Create a Photo managed object from the image data and ID and insert it into the fetchedResultsController's context
-                if let fetchedResultsController = self.fetchedResultsController {
-                    let photo = Photo(withImageData: imageData, andId: imageId, intoContext: fetchedResultsController.managedObjectContext)
-                    // Set the photo's pin relation to the current pin
-                    photo.pin = pin
-                    CoreDataStack.stack.save()
+                    if let photo = self.pin.getPhoto(withId: imageId) {
+                        photo.imageData = imageData
+                        CoreDataStack.stack.save()
+                        self.numberOfDownloadedImages += 1
+                        if self.numberOfDownloadedImages >= imageInformations.count {
+                            self.imageCollectionViewIsDownloading = false
+                        }
+                    }
                 }
             }
         }
@@ -267,6 +284,22 @@ extension PhotoAlbumViewController {
 // MARK: - Helper functions
 
 extension PhotoAlbumViewController {
+    // This function takes an image information dictionary, checks the number of items in the dictionary and
+    // sets the user interface accordingly
+    func checkAvailable(imageInformations: [String:URL]) {
+        // If there are no image URLs available a label indicating that no
+        // images were found should be displayed
+        if imageInformations.count <= 0 {
+            // In this app it can be assumed that there is only one section
+            if self.imageCollectionView.numberOfItems(inSection: 0) <= 0 {
+                self.noImagesFoundLabel.isHidden = false
+            }
+            self.imageCollectionViewIsDownloading = false
+        } else {
+            self.noImagesFoundLabel.isHidden = true
+        }
+    }
+    
     func toggleNewAlbumButton(delete: Bool) {
         if delete {
             loadNewAlbumButton.title = "Remove Selected Images"

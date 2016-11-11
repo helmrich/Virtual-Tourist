@@ -12,16 +12,12 @@ import UIKit
 import CoreData
 
 extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
+    
     func initializeFetchedResultsController() {
-        guard let pin = pin else {
-            print("No pin available")
-            return
-        }
-        
         let predicate = NSPredicate(format: "pin == %@", argumentArray: [pin])
         
         // Create a fetch request for the Pin entity and assign the predicate to its predicate property
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Photo")
+        let fetchRequest = NSFetchRequest<Photo>(entityName: "Photo")
         fetchRequest.predicate = predicate
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "id", ascending: true)]
         
@@ -33,9 +29,18 @@ extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
         } catch {
             fatalError("Error when trying to perform fetch with fetched results controller: \(error.localizedDescription)")
         }
-        
-        imageCollectionView.reloadData()
     }
+    
+    
+
+    func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        insertedIndexPaths = [IndexPath]()
+        updatedIndexPaths = [IndexPath]()
+        deletedIndexPaths = [IndexPath]()
+    }
+    
+    
+    
     
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange sectionInfo: NSFetchedResultsSectionInfo, atSectionIndex sectionIndex: Int, for type: NSFetchedResultsChangeType) {
         imageCollectionView.performBatchUpdates({
@@ -55,29 +60,48 @@ extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
     }
     
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
-        imageCollectionView.performBatchUpdates({
-            switch type {
-            case .insert:
-                print("Inserting/reloading item...")
-                self.imageCollectionView.reloadItems(at: [newIndexPath!])
-            case .delete:
-                print("Deleting item...")
-                self.imageCollectionView.deleteItems(at: [indexPath!])
-                if self.numberOfImages > 0 {
-                    self.numberOfImages -= 1
-                }
-            case .move:
-                print("Moving item...")
-                self.imageCollectionView.moveItem(at: indexPath!, to: newIndexPath!)
-            case .update:
-                print("Updating cell...")
-                if let updatedCell = self.imageCollectionView.dequeueReusableCell(withReuseIdentifier: "imageCell", for: indexPath!) as? ImageCollectionViewCell,
-                    let currentPhoto = self.fetchedResultsController!.object(at: indexPath!) as? Photo
-                {
-                    updatedCell.imageId = currentPhoto.id
-                    updatedCell.imageView.image = UIImage(data: currentPhoto.imageData as Data)
-                }
+        switch type {
+        case .insert:
+            print("Inserting item...")
+            if let newIndexPath = newIndexPath {
+                insertedIndexPaths.append(newIndexPath)
+            }
+            break
+        case .delete:
+            print("Deleting item...")
+            if let indexPath = indexPath {
+                deletedIndexPaths.append(indexPath)
+            }
+            break
+        case .update:
+            print("Updating cell...")
+            if let indexPath = indexPath {
+                updatedIndexPaths.append(indexPath)
+            }
+            break
+        case .move:
+            print("Moving item...")
+            break
+        }
+    }
+    
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        print("Controller did change content...")
+        
+        imageCollectionView.performBatchUpdates({ 
+            for indexPath in self.insertedIndexPaths {
+                self.imageCollectionView.insertItems(at: [indexPath])
+            }
+            
+            for indexPath in self.deletedIndexPaths {
+                self.imageCollectionView.deleteItems(at: [indexPath])
+            }
+            
+            for indexPath in self.updatedIndexPaths {
+                self.imageCollectionView.reloadItems(at: [indexPath])
             }
         }, completion: nil)
+        
     }
+    
 }
