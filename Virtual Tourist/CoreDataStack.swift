@@ -14,7 +14,7 @@ class CoreDataStack: NSObject {
     
     // Singleton, overwrite the init with fileprivate access control to make sure it can only be
     // instantiated in this file
-    static let stack = CoreDataStack()
+    static let shared = CoreDataStack()
     fileprivate override init() {}
     
     // Create a persistent container that contains the Core Data stack
@@ -82,7 +82,7 @@ extension CoreDataStack {
         let pin: Pin?
         do {
             // Make a fetch request and get the pin at index 0 if there is at least one pin at the specified coordinate
-            let pins = try CoreDataStack.stack.persistentContainer.viewContext.fetch(fetchRequest)
+            let pins = try CoreDataStack.shared.persistentContainer.viewContext.fetch(fetchRequest)
             if pins.count > 0 {
                 pin = pins[0]
             } else {
@@ -108,7 +108,7 @@ extension CoreDataStack {
         // Create and execute a batch delete request from the fetch request
         let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
         do {
-            try CoreDataStack.stack.persistentContainer.viewContext.execute(batchDeleteRequest)
+            try CoreDataStack.shared.persistentContainer.viewContext.execute(batchDeleteRequest)
             print("Successfully deleted pin")
         } catch {
             print("Error when trying to delete pin: \(error.localizedDescription)")

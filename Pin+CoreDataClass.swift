@@ -33,7 +33,7 @@ public class Pin: NSManagedObject {
         
         // Try to fetch the photos and return them if there are photos
         do {
-            let photos = try CoreDataStack.stack.persistentContainer.viewContext.fetch(fetchRequest)
+            let photos = try CoreDataStack.shared.persistentContainer.viewContext.fetch(fetchRequest)
             if photos.count > 0 {
                 return photos
             } else {
@@ -56,7 +56,7 @@ public class Pin: NSManagedObject {
         
         // Try to fetch the photos and return them if there are photos
         do {
-            let photos = try CoreDataStack.stack.persistentContainer.viewContext.fetch(fetchRequest)
+            let photos = try CoreDataStack.shared.persistentContainer.viewContext.fetch(fetchRequest)
             if photos.count > 0 {
                 return photos[0]
             } else {

@@ -33,7 +33,7 @@ extension TravelLocationsMapViewController: MKMapViewDelegate {
             // if it is, remove the annotation from the map view and delete the pin at the
             // annotation's coordinate from Core Data
             mapView.removeAnnotation(annotation)
-            CoreDataStack.stack.deletePin(forLatitude: annotation.coordinate.latitude, andLongitude: annotation.coordinate.longitude)
+            CoreDataStack.shared.deletePin(forLatitude: annotation.coordinate.latitude, andLongitude: annotation.coordinate.longitude)
             return
         }
         

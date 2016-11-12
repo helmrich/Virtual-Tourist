@@ -53,7 +53,7 @@ class TravelLocationsMapViewController: UIViewController {
         // Get all pins from the view context and place them on the travel locations map view
         let fetchRequest = NSFetchRequest<Pin>(entityName: "Pin")
         do {
-            let pins = try CoreDataStack.stack.persistentContainer.viewContext.fetch(fetchRequest)
+            let pins = try CoreDataStack.shared.persistentContainer.viewContext.fetch(fetchRequest)
             for pin in pins {
                 let annotation = MKPointAnnotation()
                 annotation.coordinate = CLLocationCoordinate2D(latitude: pin.latitude, longitude: pin.longitude)
@@ -84,8 +84,8 @@ class TravelLocationsMapViewController: UIViewController {
             travelLocationsMapView.addAnnotation(annotation)
             
             // create a Pin object with the annotation's coordinate and save the context
-            let _ = Pin(withLatitude: annotation.coordinate.latitude, andLongitude: annotation.coordinate.longitude, intoContext: CoreDataStack.stack.persistentContainer.viewContext)
-            CoreDataStack.stack.save()
+            let _ = Pin(withLatitude: annotation.coordinate.latitude, andLongitude: annotation.coordinate.longitude, intoContext: CoreDataStack.shared.persistentContainer.viewContext)
+            CoreDataStack.shared.save()
         }
     }
     

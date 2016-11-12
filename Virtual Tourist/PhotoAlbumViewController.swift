@@ -49,7 +49,7 @@ class PhotoAlbumViewController: UIViewController {
         // object for its latitude and longitude values
         didSet {
             if let annotation = annotation {
-                pin = CoreDataStack.stack.getPin(forLatitude: annotation.coordinate.latitude, andLongitude: annotation.coordinate.longitude)
+                pin = CoreDataStack.shared.getPin(forLatitude: annotation.coordinate.latitude, andLongitude: annotation.coordinate.longitude)
             }
         }
     }
@@ -85,7 +85,7 @@ class PhotoAlbumViewController: UIViewController {
             }
         
             for removingPhoto in removingPhotos {
-                CoreDataStack.stack.persistentContainer.viewContext.delete(removingPhoto)
+                CoreDataStack.shared.persistentContainer.viewContext.delete(removingPhoto)
             }
             
             selectedIndexPaths = [IndexPath]()
@@ -208,10 +208,10 @@ extension PhotoAlbumViewController {
         
         // Deletion of old photos
         if imageInformations.count > 0 {
-            CoreDataStack.stack.persistentContainer.viewContext.performAndWait {
+            CoreDataStack.shared.persistentContainer.viewContext.performAndWait {
                 for photo in self.fetchedResultsController.fetchedObjects! {
-                    CoreDataStack.stack.persistentContainer.viewContext.delete(photo)
-                    CoreDataStack.stack.save()
+                    CoreDataStack.shared.persistentContainer.viewContext.delete(photo)
+                    CoreDataStack.shared.save()
                 }
             }
             self.numberOfDownloadedImages = 0
@@ -219,10 +219,10 @@ extension PhotoAlbumViewController {
         
         // Creation of new photos
         for (id, _) in imageInformations {
-            CoreDataStack.stack.persistentContainer.viewContext.performAndWait {
-                let photo = Photo(withImageData: nil, andId: id, intoContext: CoreDataStack.stack.persistentContainer.viewContext)
+            CoreDataStack.shared.persistentContainer.viewContext.performAndWait {
+                let photo = Photo(withImageData: nil, andId: id, intoContext: CoreDataStack.shared.persistentContainer.viewContext)
                 photo.pin = self.pin
-                CoreDataStack.stack.save()
+                CoreDataStack.shared.save()
             }
         }
     }
@@ -251,10 +251,10 @@ extension PhotoAlbumViewController {
                     return
                 }
                 
-                CoreDataStack.stack.persistentContainer.viewContext.performAndWait {
+                CoreDataStack.shared.persistentContainer.viewContext.performAndWait {
                     if let photo = self.pin.getPhoto(withId: imageId) {
                         photo.imageData = imageData
-                        CoreDataStack.stack.save()
+                        CoreDataStack.shared.save()
                         self.numberOfDownloadedImages += 1
                         if self.numberOfDownloadedImages >= imageInformations.count {
                             self.imagesAreBeingDownloaded = false

@@ -42,15 +42,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
-        CoreDataStack.stack.save()
+        CoreDataStack.shared.save()
     }
 
     func applicationDidEnterBackground(_ application: UIApplication) {
-        CoreDataStack.stack.save()
+        CoreDataStack.shared.save()
     }
 
     func applicationWillTerminate(_ application: UIApplication) {
-        CoreDataStack.stack.save()
+        CoreDataStack.shared.save()
     }
 }
 
