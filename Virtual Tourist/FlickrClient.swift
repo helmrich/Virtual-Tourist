@@ -71,22 +71,19 @@ class FlickrClient {
                 return
             }
             
-            let jsonData: [String:Any]
-            do {
-                jsonData = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as! [String:Any]
-            } catch {
-                completionHandlerForImageInformations(nil, nil, "JSON deserialization error: \(error.localizedDescription)")
+            guard let jsonObject = self.deserializeJson(from: data) else {
+                completionHandlerForImageInformations(nil, nil, "Couldn't deserialize data to JSON")
                 return
             }
             
-            // Get the number of pages and the array of photo dictionaries by extracting them from the JSON object
-            guard let photos = jsonData[FlickrConstant.JSONResponseKey.photos] as? [String:Any],
+            // Get the number of pages and the array of photo dictionaries by extracting them
+            // from the JSON object
+            guard let photos = jsonObject[FlickrConstant.JSONResponseKey.photos] as? [String:Any],
                 let numberOfPages = photos[FlickrConstant.JSONResponseKey.pages] as? Int,
                 let photoArray = photos[FlickrConstant.JSONResponseKey.photoArray] as? [[String:Any]] else {
                     completionHandlerForImageInformations(nil, nil, "Error when parsing JSON")
                     return
             }
-            
             
             // Create an empty dictionary with strings as keys (image ID) and an associated URL
             // as a value and fill it by iterating over all items in the array of photo dictionaries
@@ -104,7 +101,8 @@ class FlickrClient {
                 
             }
             
-            // Call the completion handler and pass it the image informations and number of available pages
+            // Call the completion handler and pass it the image informations and number
+            // of available pages
             completionHandlerForImageInformations(imageInformations, numberOfPages, nil)
             
         }
@@ -164,35 +162,6 @@ class FlickrClient {
         }
         
         task.resume()
-        
-    }
-    
-}
-
-
-// MARK: - Helper Methods
-
-extension FlickrClient {
-    // This function creates a Flickr URL by taking a dictionary of parameters
-    fileprivate func createFlickrUrl(fromParameters parameters: [String:Any]) -> URL? {
-        
-        // Create a URLComponents object and set its properties
-        var urlComponents = URLComponents()
-        urlComponents.scheme = FlickrConstant.Url.scheme
-        urlComponents.host = FlickrConstant.Url.host
-        urlComponents.path = FlickrConstant.Url.restApiPath
-        
-        
-        // Create an empty array of URL query items and fill it with all the given parameters
-        var queryItems = [URLQueryItem]()
-        
-        for (parameterKey, parameterValue) in parameters {
-            let queryItem = URLQueryItem(name: parameterKey, value: "\(parameterValue)")
-            queryItems.append(queryItem)
-        }
-
-        urlComponents.queryItems = queryItems
-        return urlComponents.url
         
     }
 }

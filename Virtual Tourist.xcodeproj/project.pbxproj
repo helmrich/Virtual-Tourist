@@ -30,6 +30,7 @@
 		D2AF7A061DC018ED0021EAA3 /* FlickrConstant.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2AF7A051DC018ED0021EAA3 /* FlickrConstant.swift */; };
 		D2CA2C451DBEA727001AE4ED /* CoreDataStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2CA2C441DBEA727001AE4ED /* CoreDataStack.swift */; };
 		D2CA43671DD7760F00B74862 /* PhotoAlbumMapViewDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2CA43661DD7760F00B74862 /* PhotoAlbumMapViewDelegate.swift */; };
+		D2CA43691DD7ADE500B74862 /* FlickrClientHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2CA43681DD7ADE500B74862 /* FlickrClientHelper.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -58,6 +59,7 @@
 		D2AF7A051DC018ED0021EAA3 /* FlickrConstant.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FlickrConstant.swift; sourceTree = "<group>"; };
 		D2CA2C441DBEA727001AE4ED /* CoreDataStack.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreDataStack.swift; sourceTree = "<group>"; };
 		D2CA43661DD7760F00B74862 /* PhotoAlbumMapViewDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PhotoAlbumMapViewDelegate.swift; sourceTree = "<group>"; };
+		D2CA43681DD7ADE500B74862 /* FlickrClientHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FlickrClientHelper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -169,6 +171,7 @@
 			isa = PBXGroup;
 			children = (
 				D2AF79FF1DBFED060021EAA3 /* FlickrClient.swift */,
+				D2CA43681DD7ADE500B74862 /* FlickrClientHelper.swift */,
 				D2AF7A051DC018ED0021EAA3 /* FlickrConstant.swift */,
 			);
 			name = Flickr;
@@ -262,6 +265,7 @@
 				D23849471DD55E0C00DC0CA7 /* Pin+CoreDataProperties.swift in Sources */,
 				D239ECAD1DCD0C2200778B85 /* PhotoAlbumImageCollectionViewDelegate.swift in Sources */,
 				D2AF7A001DBFED060021EAA3 /* FlickrClient.swift in Sources */,
+				D2CA43691DD7ADE500B74862 /* FlickrClientHelper.swift in Sources */,
 				D287AF121DBD36DD003D8914 /* PhotoAlbumViewController.swift in Sources */,
 				D239EC9B1DCA224800778B85 /* ColorExtensions.swift in Sources */,
 				D2CA43671DD7760F00B74862 /* PhotoAlbumMapViewDelegate.swift in Sources */,
