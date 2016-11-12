@@ -22,26 +22,7 @@ public class Pin: NSManagedObject {
         
     }
     
-    // This method removes all photos from a pin
-    func removePhotos() {
-        
-        // Create a fetch request for photos with the pin the method is used on as a predicate condition
-        // and create a batch delete request from it
-        let predicate = NSPredicate(format: "pin == %@", argumentArray: [self])
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Photo")
-        fetchRequest.predicate = predicate
-        let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
-        
-        // Execute the batch delete request and save the Core Data stack
-        do {
-            try CoreDataStack.stack.persistentContainer.viewContext.execute(batchDeleteRequest)
-            print("Deleted photos from pin...")
-        } catch {
-            fatalError("Error when trying to delete pin's photos: \(error.localizedDescription)")
-        }
-    }
-    
-    func getAllPinPhotos() -> [Photo]? {
+    func getAllPhotos() -> [Photo]? {
         // Create a predicate with the condition that the photo's pin relation matches
         // the pin this method is called on
         let predicate = NSPredicate(format: "pin == %@", argumentArray: [self])
