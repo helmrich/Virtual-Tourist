@@ -22,5 +22,4 @@ extension PhotoAlbumViewController: UICollectionViewDelegate {
         }
         configure(cell: deselectedCell, atIndexPath: indexPath)
     }
-    
 }

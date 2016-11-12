@@ -28,16 +28,14 @@ extension PhotoAlbumViewController: UICollectionViewDataSource {
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        
-        // Dequeue a reusable cell and cast it to the ImageCollectionViewCell type
         let cell = imageCollectionView.dequeueReusableCell(withReuseIdentifier: "imageCell", for: indexPath) as! ImageCollectionViewCell
-        
         configure(cell: cell, atIndexPath: indexPath)
-        
         return cell
     }
     
     func configure(cell: ImageCollectionViewCell, atIndexPath indexPath: IndexPath) {
+        // At first the cell's properties should be reset to prevent problems
+        // with duplicate dequeued cells
         cell.imageId = nil
         cell.imageView.image = nil
         
@@ -53,11 +51,17 @@ extension PhotoAlbumViewController: UICollectionViewDataSource {
         cell.activityIndicatorView.isHidden = false
         cell.activityIndicatorView.startAnimating()
         
+        // Get the fetched results controller's fetched objects and check if
+        // the number of fetched objects is higher than the current index
+        // path's row
         if let fetchedObjects = fetchedResultsController.fetchedObjects,
             fetchedObjects.count > indexPath.row {
             
+            // Get the photo from the fetched results controller's objects that
+            // is at the cell's index path and set the cell's image ID to this
+            // photo's ID. If there is image data, also try to create an image
+            // from the data and set the cell's image to it
             let currentPhoto = fetchedResultsController.object(at: indexPath)
-            
             
             // and set the cell's properties to the values
             cell.imageId = currentPhoto.id

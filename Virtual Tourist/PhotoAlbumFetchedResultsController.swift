@@ -13,10 +13,15 @@ import CoreData
 
 extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
     
+    // This function initializes a fetched results controller and sets the
+    // PhotoAlbumViewController's fetched results controller property
+    // to it. The fetched results controller should fetch all of the photos
+    // associated to the selected pin.
     func initializeFetchedResultsController() {
         let predicate = NSPredicate(format: "pin == %@", argumentArray: [pin])
         
-        // Create a fetch request for the Pin entity and assign the predicate to its predicate property
+        // Create a fetch request for the Pin entity and assign the predicate
+        // to its predicate property
         let fetchRequest = NSFetchRequest<Photo>(entityName: "Photo")
         fetchRequest.predicate = predicate
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "id", ascending: true)]
@@ -30,18 +35,15 @@ extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
             fatalError("Error when trying to perform fetch with fetched results controller: \(error.localizedDescription)")
         }
     }
-    
-    
 
+    // When the controller will change content the arrays used to store the indices
+    // of altered items should be instantiated
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         insertedIndexPaths = [IndexPath]()
         updatedIndexPaths = [IndexPath]()
         deletedIndexPaths = [IndexPath]()
     }
-    
-    
-    
-    
+
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange sectionInfo: NSFetchedResultsSectionInfo, atSectionIndex sectionIndex: Int, for type: NSFetchedResultsChangeType) {
         imageCollectionView.performBatchUpdates({
             switch type {
@@ -59,6 +61,7 @@ extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
         }, completion: nil)
     }
     
+    // Every time an object is changed, its index path should be stored in the appropriate array
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
         switch type {
         case .insert:
@@ -85,6 +88,9 @@ extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
         }
     }
     
+    // When the fetched results controller changed the content, the image collection view
+    // should be modified by iterating over all index paths and alter the collection view
+    // appropriately
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         print("Controller did change content...")
         
