@@ -14,7 +14,7 @@ class TravelLocationsMapViewController: UIViewController {
 
     // MARK: - Properties
     
-    // This property indicates whether the pins on the map should be
+    // This property keeps track of whether the pins on the map should be
     // deleted when they're tapped or not
     var isInDeleteMode = false
     
@@ -70,7 +70,7 @@ class TravelLocationsMapViewController: UIViewController {
     func placeAnnotation(sender: UILongPressGestureRecognizer) {
         // The annotation should be placed on the map only when the long press
         // gesture began, but not when the long press ends
-        if sender.state == UIGestureRecognizerState.began {
+        if sender.state == UIGestureRecognizerState.began && !isInDeleteMode {
             // Get the point on the travelLocationsMapView that was tapped with a long press
             let touchPoint = sender.location(in: travelLocationsMapView)
             
