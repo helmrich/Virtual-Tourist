@@ -84,7 +84,7 @@ class TravelLocationsMapViewController: UIViewController {
             travelLocationsMapView.addAnnotation(annotation)
             
             // create a Pin object with the annotation's coordinate and save the context
-            let pin = Pin(withLatitude: annotation.coordinate.latitude, andLongitude: annotation.coordinate.longitude, intoContext: CoreDataStack.stack.persistentContainer.viewContext)
+            let _ = Pin(withLatitude: annotation.coordinate.latitude, andLongitude: annotation.coordinate.longitude, intoContext: CoreDataStack.stack.persistentContainer.viewContext)
             CoreDataStack.stack.save()
         }
     }

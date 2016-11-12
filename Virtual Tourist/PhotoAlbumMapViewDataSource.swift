@@ -24,8 +24,10 @@ extension PhotoAlbumViewController: MKMapViewDelegate {
         let resizedImage = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
         
-        // Set the annotation view's image property to the custom image and set a center offset with a y-value
-        // of negative the half of the pin image's height so that the bottom of the image points to the annotation view's coordinate
+        // Set the annotation view's image property to the custom image and set
+        // a center offset with a y-value of negative the half of the pin image's
+        // height so that the bottom of the image points to the annotation view's
+        // coordinate
         annotationView.image = resizedImage
         annotationView.centerOffset = CGPoint(x: 0, y: -(pinImageSize.height / 2))
         return annotationView
