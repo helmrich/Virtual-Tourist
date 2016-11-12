@@ -89,7 +89,6 @@ extension CoreDataStack {
                 pin = nil
             }
         } catch {
-            print("Error when trying to fetch pin: \(error.localizedDescription)")
             pin = nil
         }
         
@@ -109,9 +108,8 @@ extension CoreDataStack {
         let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
         do {
             try CoreDataStack.shared.persistentContainer.viewContext.execute(batchDeleteRequest)
-            print("Successfully deleted pin")
         } catch {
-            print("Error when trying to delete pin: \(error.localizedDescription)")
+            fatalError("Error when trying to delete pin: \(error.localizedDescription)")
         }
     }
     

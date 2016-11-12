@@ -60,7 +60,7 @@ class TravelLocationsMapViewController: UIViewController {
                 travelLocationsMapView.addAnnotation(annotation)
             }
         } catch {
-            print("Error when fetching pins from persisting context: \(error)")
+            self.presentAlertController(withMessage: "Error when trying to get pins: \(error.localizedDescription)")
         }
         
     }

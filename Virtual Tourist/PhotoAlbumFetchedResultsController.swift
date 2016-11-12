@@ -48,10 +48,8 @@ extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
         imageCollectionView.performBatchUpdates({
             switch type {
             case .insert:
-                print("Inserting section...")
                 self.imageCollectionView.insertSections(IndexSet(integer: sectionIndex))
             case .delete:
-                print("Deleting section...")
                 self.imageCollectionView.deleteSections(IndexSet(integer: sectionIndex))
             case .move:
                 break
@@ -65,25 +63,21 @@ extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
         switch type {
         case .insert:
-            print("Inserting item...")
             if let newIndexPath = newIndexPath {
                 insertedIndexPaths.append(newIndexPath)
             }
             break
         case .delete:
-            print("Deleting item...")
             if let indexPath = indexPath {
                 deletedIndexPaths.append(indexPath)
             }
             break
         case .update:
-            print("Updating cell...")
             if let indexPath = indexPath {
                 updatedIndexPaths.append(indexPath)
             }
             break
         case .move:
-            print("Moving item...")
             break
         }
     }
@@ -92,8 +86,6 @@ extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
     // should be modified by iterating over all index paths and alter the collection view
     // appropriately
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        print("Controller did change content...")
-        
         imageCollectionView.performBatchUpdates({ 
             for indexPath in self.insertedIndexPaths {
                 self.imageCollectionView.insertItems(at: [indexPath])
@@ -107,7 +99,5 @@ extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
                 self.imageCollectionView.reloadItems(at: [indexPath])
             }
         }, completion: nil)
-        
     }
-    
 }

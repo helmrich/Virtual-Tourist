@@ -40,7 +40,6 @@ public class Pin: NSManagedObject {
                 return nil
             }
         } catch {
-            print("Error when trying to get pin's photos")
             return nil
         }
     }
@@ -63,7 +62,6 @@ public class Pin: NSManagedObject {
                 return nil
             }
         } catch {
-            print("Error when trying to get pin's photos")
             return nil
         }
     }
