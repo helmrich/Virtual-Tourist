@@ -55,19 +55,14 @@ extension TravelLocationsMapViewController: MKMapViewDelegate {
             let annotationView = MKAnnotationView(annotation: annotation, reuseIdentifier: "pin")
             
             // Get the custom pin image
-            let pinImage = UIImage(named: "VTPin")
+            let pinImage = #imageLiteral(resourceName: "VTPin")
             
-            // Resize the image
-            let pinImageSize = CGSize(width: 30, height: 42)
-            UIGraphicsBeginImageContext(pinImageSize)
-            pinImage!.draw(in: CGRect(x: 0, y: 0, width: pinImageSize.width, height: pinImageSize.height))
-            let resizedImage = UIGraphicsGetImageFromCurrentImageContext()
-            UIGraphicsEndImageContext()
-            
-            // Set the annotation view's image property to the custom image and set a center offset with a y-value
-            // of negative the half of the pin image's height so that the bottom of the image points to the annotation view's coordinate
-            annotationView.image = resizedImage
-            annotationView.centerOffset = CGPoint(x: 0, y: -(pinImageSize.height / 2))
+            // Set the annotation view's image property to the custom image and set
+            // a center offset with a y-value of negative the half of the pin image's
+            // height so that the bottom of the image points to the annotation view's
+            // coordinate
+            annotationView.image = pinImage
+            annotationView.centerOffset = CGPoint(x: 0, y: -(pinImage.size.height / 2))
             return annotationView
         }
         
