@@ -119,7 +119,7 @@ class PhotoAlbumViewController: UIViewController {
             // Add the annotation to the photo album view controller's map view and
             // set the region with the annotation's coordinate as a center
             mapView.addAnnotation(annotation)
-            let region = MKCoordinateRegionMakeWithDistance(annotation.coordinate, 4000, 4000)
+            let region = MKCoordinateRegionMakeWithDistance(annotation.coordinate, 1000, 1000)
             mapView.setRegion(region, animated: true)
             
             // Try to get the pin's photos and check if there are any
