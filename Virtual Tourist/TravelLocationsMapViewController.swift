@@ -70,9 +70,8 @@ class TravelLocationsMapViewController: UIViewController {
     // MARK: - Functions
 
     func placeAnnotation(sender: UILongPressGestureRecognizer) {
-        // The annotation should be placed on the map only when the long press
-        // gesture began, but not when the long press ends
-        
+        // It should only be possible to place a pin when the delete mode
+        // is not active
         if !isInDeleteMode {
             switch sender.state {
             case .began:
