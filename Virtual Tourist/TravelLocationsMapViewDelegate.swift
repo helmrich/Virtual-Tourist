@@ -53,6 +53,8 @@ extension TravelLocationsMapViewController: MKMapViewDelegate {
         guard let annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: "pin") else {
             // If not, create an annotation view with the "pin" reuse identifier,
             let annotationView = MKAnnotationView(annotation: annotation, reuseIdentifier: "pin")
+            annotationView.annotation = annotation
+            annotationView.isDraggable = true
             
             // Get the custom pin image
             let pinImage = #imageLiteral(resourceName: "VTPin")

@@ -17,6 +17,7 @@ class TravelLocationsMapViewController: UIViewController {
     // This property keeps track of whether the pins on the map should be
     // deleted when they're tapped or not
     var isInDeleteMode = false
+    var annotation: MKPointAnnotation = MKPointAnnotation()
     
     
     // MARK: - Outlets and Actions
@@ -59,6 +60,7 @@ class TravelLocationsMapViewController: UIViewController {
                 annotation.coordinate = CLLocationCoordinate2D(latitude: pin.latitude, longitude: pin.longitude)
                 travelLocationsMapView.addAnnotation(annotation)
             }
+            print(travelLocationsMapView.annotations.count)
         } catch {
             self.presentAlertController(withMessage: "Error when trying to get pins: \(error.localizedDescription)")
         }
@@ -70,22 +72,31 @@ class TravelLocationsMapViewController: UIViewController {
     func placeAnnotation(sender: UILongPressGestureRecognizer) {
         // The annotation should be placed on the map only when the long press
         // gesture began, but not when the long press ends
-        if sender.state == UIGestureRecognizerState.began && !isInDeleteMode {
-            // Get the point on the travelLocationsMapView that was tapped with a long press
-            let touchPoint = sender.location(in: travelLocationsMapView)
-            
-            // Convert the position of the long press to a coordinate on the travelLocationsMapView,
-            // create a point annotation with this coordinate,
-            let tappedCoordinate = travelLocationsMapView.convert(touchPoint, toCoordinateFrom: travelLocationsMapView)
-            let annotation = MKPointAnnotation()
-            annotation.coordinate = tappedCoordinate
-            
-            // add the annotation to the map view,
-            travelLocationsMapView.addAnnotation(annotation)
-            
-            // create a Pin object with the annotation's coordinate and save the context
-            let _ = Pin(withLatitude: annotation.coordinate.latitude, andLongitude: annotation.coordinate.longitude, intoContext: CoreDataStack.shared.persistentContainer.viewContext)
-            CoreDataStack.shared.save()
+        
+        if !isInDeleteMode {
+            switch sender.state {
+            case .began:
+                // Create a new instance of MKPointAnnotation and set its initial coordinate
+                // to the point the user tapped
+                annotation = MKPointAnnotation()
+                setCoordinate(forPointAnnotation: annotation, fromLongPressGestureRecognizer: sender)
+                
+                // Add the annotation to the map view
+                travelLocationsMapView.addAnnotation(annotation)
+            case .changed:
+                // Every time the position of the user's finger changes, set a new
+                // coordinate for the point to the new position of the finger and add
+                // it to the map view again at its coordinate
+                setCoordinate(forPointAnnotation: annotation, fromLongPressGestureRecognizer: sender)
+                travelLocationsMapView.addAnnotation(annotation)
+            case .ended:
+                // When the tap ends, create a Pin managed object with the annotation's
+                // coordinate and save the context
+                let _ = Pin(withLatitude: annotation.coordinate.latitude, andLongitude: annotation.coordinate.longitude, intoContext: CoreDataStack.shared.persistentContainer.viewContext)
+                CoreDataStack.shared.save()
+            default:
+                break
+            }
         }
     }
     
@@ -107,6 +118,17 @@ class TravelLocationsMapViewController: UIViewController {
         // Create and set the region from the center coordinate and span
         let startRegion = MKCoordinateRegion(center: centerCoordinate, span: span)
         travelLocationsMapView.setRegion(startRegion, animated: false)
+    }
+    
+    func setCoordinate(forPointAnnotation annotation: MKPointAnnotation, fromLongPressGestureRecognizer longPressGestureRecognizer: UILongPressGestureRecognizer) {
+        // Get the point on the travelLocationsMapView that was tapped with a long press
+        let touchPoint = longPressGestureRecognizer.location(in: travelLocationsMapView)
+        
+        // Convert the position of the long press to a coordinate on the travelLocationsMapView,
+        // create a point annotation with this coordinate,
+        let tappedCoordinate = travelLocationsMapView.convert(touchPoint, toCoordinateFrom: travelLocationsMapView)
+        
+        annotation.coordinate = tappedCoordinate
     }
     
 }
